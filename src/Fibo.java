@@ -1,6 +1,21 @@
 import java.io.Console;
 import static java.lang.System.out;
 
+/*
+ * Agenda:
+ * Topics:
+ * Functions
+ * Psuedo-code
+ * Classes
+ * 
+ * More stuff:
+ * Data structures/Collection classes
+ * OpenGL (conceptually)
+ * Recursion
+ * Be able to know how to do anything.
+ * 
+ */
+
 public class Fibo {
 
 	/**
