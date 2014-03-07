@@ -18,8 +18,8 @@ public class Shapester
 		SNAZZY, DULL, OUTRAGEOUS
 	}
     
-    private double x = 0;
-    private double y = 0;
+    protected double x = 0;
+    protected double y = 0;
     public double width = 50d;
     public double height = 50d;
     
@@ -46,18 +46,13 @@ public class Shapester
     	y += 0.1;
     }
     
-    public Point2D.Double getTheFirstPoint()
-    {
-    	return new Point2D.Double(x,y);
-    }
-    
     public Color getColor(){
     	return Color.red;
     }
     
     public Point.Double[] getPoints()
     {
-    	return new Point2D.Double[] { new Point2D.Double(x + width, y),new Point2D.Double(x + width/2d, y + height),new Point2D.Double(x,y) };
+    	return new Point2D.Double[] {new Point2D.Double(x,y), new Point2D.Double(x + width, y),new Point2D.Double(x + width/2d, y + height),new Point2D.Double(x,y) };
     }
 
 }

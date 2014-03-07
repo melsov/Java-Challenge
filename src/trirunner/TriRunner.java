@@ -30,7 +30,7 @@ public class TriRunner extends JApplet implements ActionListener
 	private static Timer timer;
 	
 	private Shapester shape1;
-	
+	private Zigster zig1;
 	
 	/*
 	 * Do me a favor and 
@@ -78,6 +78,9 @@ public class TriRunner extends JApplet implements ActionListener
 	{
 		shape1 = new Shapester();
 		
+		zig1 = new Zigster();
+		zig1.setx(80);
+		
 		timer = new Timer(5, this);
         timer.start();
 	}
@@ -87,27 +90,31 @@ public class TriRunner extends JApplet implements ActionListener
 		Graphics2D g = (Graphics2D) graphics;
 		g.clearRect(0, 0, 550, 500);
 		
+
 		drawAShapester(g, shape1);
+//		drawAShapester(g, zig1);
 		
 	}
 	
 	private void drawAShapester(Graphics2D g, Shapester the_shapester)
 	{
+		
 		setForeground(the_shapester.getColor());
 		
-		Point2D.Double firstPoint = the_shapester.getTheFirstPoint();
 		Point2D.Double[] points = the_shapester.getPoints();
+		Point2D.Double firstPoint = points[0];
 		GeneralPath line = new GeneralPath(GeneralPath.WIND_EVEN_ODD, points.length );
 		
 		line.moveTo(firstPoint.x, firstPoint.y);
 		
-		for (int i = 0; i < points.length ; ++i)
+		for (int i = 1; i < points.length ; ++i)
 		{
 			Point2D.Double nextPoint = points[i];
 			line.lineTo(nextPoint.x, nextPoint.y);
 		}
 		
 		g.fill(line);
+//		g.draw(line);
 	}
 
 	@Override
@@ -116,7 +123,7 @@ public class TriRunner extends JApplet implements ActionListener
 	
 		shape1.moveALittle();
 		
-		
+		zig1.moveALittle();
 		
 		repaint();
 		
