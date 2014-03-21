@@ -155,7 +155,7 @@ public class TriRunner extends JApplet implements ActionListener
 		// that is being defined by this class, in other words
 		// a TriRunner type object.
 		timer = new Timer(5, this);
-//        timer.start();
+        timer.start();
         
 /*		
  * 	ASSIGNMENT 2: 
