@@ -37,7 +37,8 @@ public class Starster extends Shapester
 	{
 		// color constructor takes (RED_AMOUNT, GREEN_AMOUNT, BLUE_AMOUNT, TRANSPARENCY_AMOUNT) 
 		// transparency often called 'alpha'
-		return new Color(0, 255, 0, 255);  // green 
+//		return new Color(0, 255, 0, 255);  // green
+		return color;
 	}
 	
 // OVERRIDE MOVEALITTLE

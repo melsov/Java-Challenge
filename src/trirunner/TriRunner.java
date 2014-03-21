@@ -155,7 +155,7 @@ public class TriRunner extends JApplet implements ActionListener
 		// that is being defined by this class, in other words
 		// a TriRunner type object.
 		timer = new Timer(5, this);
-        timer.start();
+//        timer.start();
         
 /*		
  * 	ASSIGNMENT 2: 
@@ -173,25 +173,29 @@ public class TriRunner extends JApplet implements ActionListener
  *       DON'T USE NESTED LOOPS FOR THIS. JUST ONE FOR LOOP THAT GOES FROM i = 0 TO i < shapes.length
  * 
  */
-        
-//		for(int i = 0; i < COLUMNS; ++i)
-//		{
-//			for(int j = 0; j < ROWS; ++j)
-//			{
-//				//TODO: fill in code to make a shapester that 
-//        		//appears in the right spot in the grid
-//        		// TAKE A SEC TO SEE HOW WE GET THE INDEX WE WANT WITH i * ROWS + j
-//        		// IN OTHER WORDS: (the_column_we_are_on * total_number_of_rows + the_row_we_are_one)
-//			    // OR IN OTHER WORDS: (the_column_we_are_on * num_items_per_column + the_row_we_are_one)
-//        		// (AND THIS WORKS BECAUSE WE START COUNTING FROM ZERO.
+        int width = 40, height = 40;
+		for(int i = 0; i < COLUMNS; ++i)
+		{
+			for(int j = 0; j < ROWS; ++j)
+			{
+				//TODO: fill in code to make a shapester that 
+        		//appears in the right spot in the grid
+        		// TAKE A SEC TO SEE HOW WE GET THE INDEX WE WANT WITH i * ROWS + j
+        		// IN OTHER WORDS: (the_column_we_are_on * total_number_of_rows + the_row_we_are_one)
+			    // OR IN OTHER WORDS: (the_column_we_are_on * num_items_per_column + the_row_we_are_one)
+        		// (AND THIS WORKS BECAUSE WE START COUNTING FROM ZERO.
 //        			if COLUMNS = 50 and ROWS = 10 and we're on the second column, 6th row
 //        				second column means i is 1
 //        				i * ROWS + j --> 1 * 10 + 5 --> 15 which is the 16th element in the array
 			//    )
-        
-//				shapes[i * ROWS + j] = someNewShapester; 
-//			}
-//		}
+				Starster star = new Starster(i * width * 2,j * height * 2);
+				star.color = new Color(i*30 %255, 122, j*40%155, 255);
+				star.width = width;
+				star.height = height;
+				shapes[i * ROWS + j] = star; 
+				
+			}
+		}
         
 	}
 	
@@ -205,12 +209,18 @@ public class TriRunner extends JApplet implements ActionListener
 		Graphics2D g = (Graphics2D) graphics;
 		g.clearRect(0, 0, BOARDWIDTH, BOARDHEIGHT);
 		
-		drawAShapester(g, shape1);
+//		drawAShapester(g, shape1);
 		
 		//star1 is actually a Starster object, not a Shapester object
 		//And drawAShapester asks for a Shapester type object.
 		//Java is OK with this because Starster can pass as a Shapester since it inherits from Shapester
-		drawAShapester(g, star1);
+//		drawAShapester(g, star1);
+		
+		for(int i=0; i < shapes.length; ++i)
+		{
+			drawAShapester(g, shapes[i]);
+		}
+		
 	}
 	
 	private void drawAShapester(Graphics2D g, Shapester the_shapester)
