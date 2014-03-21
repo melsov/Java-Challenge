@@ -37,10 +37,10 @@ package trirunner;
  * 		(STARSTER HAS AN EXAMPLE OF A CONSRUCTOR THAT TAKES double _x, double _y)
  * 
  * 6) OVERRIDE THE getPoints method TO MAKE DIAMONDSTER RETURN 
- * 		A 5 POINT ARRAY FORMING A DIAMOND (I.E. SQUARE TURNED 45 DEGREES)
+ * 		A 5 POINT ARRAY FORMING A DIAMOND (I.E. SPECIFICALLY A SQUARE TURNED 45 DEGREES)
  * 		(5 points because the trirunner draws an outline and then fills it. 
  * 		the last point should be the same as the first one, 
- * 		to make a line between the starting and ending points)
+ * 		to make a line between the start and end points)
  * 
  * 7) TEST DIAMONDSTER: MODIFY TRIRUNNER SO THAT IT HAS
  * 		A DIAMONDSTER MEMBER VARIABLE diamond1 LIKE shape1 and star1 (see comment below)
@@ -159,8 +159,8 @@ public class TriRunner extends JApplet implements ActionListener
         
 /*		
  * 	ASSIGNMENT 2: 
- *   	COMMENT OUT timer.start() SINCE YOU WON'T BE ANIMATING FOR THIS. 
- *      MAKE A NESTED FOR LOOP LIKE THE ONE BELOW AND
+ *   	1.) COMMENT OUT timer.start() SINCE YOU WON'T BE ANIMATING FOR THIS. 
+ *      2.)MAKE A NESTED FOR LOOP LIKE THE ONE BELOW (OR JUST USE THE ONE BELOW) AND
  *      USE IT TO MAKE A GRID OF DIAMOND SHAPES
  *      THAT CHANGE COLORS IN THE FOLLOWING WAY:
  *      	EVEN NUMBER ROWS ARE ALL THE SAME COLOR AND ODD ROWS ALTERNATE BETWEEN TWO COLORS 
@@ -169,8 +169,16 @@ public class TriRunner extends JApplet implements ActionListener
  *      TO MAKE COLORS USE
  *        Color col = new Color(255,255,0,255); // YELLOW // ( Color(RED,GREEN,BLUE,TRANSPARENCY); 255 is max)
  *        
- *       THEN: MODIFY THE PAINT METHOD TO DRAW EACH SHAPESTER IN THE ARRAY OF SHAPES
+ *       3.) MODIFY THE PAINT METHOD TO DRAW EACH SHAPESTER IN THE ARRAY OF SHAPES
  *       DON'T USE NESTED LOOPS FOR THIS. JUST ONE FOR LOOP THAT GOES FROM i = 0 TO i < shapes.length
+ *       
+ *       4.) RUN THE PROGRAM. IF YOU GET A HARLEQUIN PATTERN OF DIAMONDS WITH THE RIGHT COLOR SCHEME, YOU'RE DONE.
+ *       IF DIAMONDS ARE TOO FAR APART (I.E. NOT TOUCHING) OR IF ROWS OF DIAMONDS OVERLAP EACH OTHER (YOU HAVE TO SHIFT EVERY
+ *       OTHER ROW TO GET THEM TO FIT) THEN TRY TO FIX YOUR PROGRAM. (HINT REGARDING SHIFTING EVERY OTHER ROW: MAY 
+ *       HAVE MENTIONED THIS ELSEWHERE BUT, A HANDY WAY TO CHECK WHETHER AN INT IS EVEN OR ODD IS: num % 2 == 0 
+ *       THAT TRANSLATES TO: "does num divided by two have zero as its remainder?"
+ *       
+ *       5.) EMAIL ME YOUR CODE. (OR BETTER YET SET UP A GITHUB ACCOUNT).
  * 
  */
         int width = 40, height = 40;
@@ -178,22 +186,27 @@ public class TriRunner extends JApplet implements ActionListener
 		{
 			for(int j = 0; j < ROWS; ++j)
 			{
-				//TODO: fill in code to make a shapester that 
+				//TODO: fill in code to make shapesters that 
         		//appears in the right spot in the grid
-        		// TAKE A SEC TO SEE HOW WE GET THE INDEX WE WANT WITH i * ROWS + j
-        		// IN OTHER WORDS: (the_column_we_are_on * total_number_of_rows + the_row_we_are_one)
-			    // OR IN OTHER WORDS: (the_column_we_are_on * num_items_per_column + the_row_we_are_one)
-        		// (AND THIS WORKS BECAUSE WE START COUNTING FROM ZERO.
-//        			if COLUMNS = 50 and ROWS = 10 and we're on the second column, 6th row
-//        				second column means i is 1
-//        				i * ROWS + j --> 1 * 10 + 5 --> 15 which is the 16th element in the array
-			//    )
+        		
+				//GET RID OF ALL OF THESE LINES
+				// AND REPLACE WITH SOMETHING SIMILAR
+				// WHERE YOU CREATE A DIAMONDSTER INSTEAD
 				Starster star = new Starster(i * width * 2,j * height * 2);
 				star.color = new Color(i*30 %255, 122, j*40%155, 255);
 				star.width = width;
 				star.height = height;
-				shapes[i * ROWS + j] = star; 
 				
+				shapes[i * ROWS + j] = star; 
+				//ABOUT THE ABOVE LINE:
+				// TAKE A SEC TO SEE HOW WE GET THE INDEX WE WANT WITH i * ROWS + j
+        		// IN OTHER WORDS: (the_column_we_are_on * total_number_of_rows + the_row_we_are_one)
+			    // OR IN OTHER WORDS: (the_column_we_are_on * num_items_per_column + the_row_we_are_one)
+        		// (AND THIS WORKS BECAUSE WE START COUNTING FROM ZERO.
+        		//	if COLUMNS = 50 and ROWS = 10 and we're on the second column, 6th row
+        		//		second column means i is 1
+        		//		i * ROWS + j --> 1 * 10 + 5 --> 15 which is the 16th element in the array
+			//    )
 			}
 		}
         
@@ -209,23 +222,27 @@ public class TriRunner extends JApplet implements ActionListener
 		Graphics2D g = (Graphics2D) graphics;
 		g.clearRect(0, 0, BOARDWIDTH, BOARDHEIGHT);
 		
-//		drawAShapester(g, shape1);
+		//****!comment this out for the diamonster homework
+		drawAShapester(g, shape1);
 		
-		//star1 is actually a Starster object, not a Shapester object
+		//TIP/FACTOID!: star1 is actually a Starster object, not a Shapester object
 		//And drawAShapester asks for a Shapester type object.
-		//Java is OK with this because Starster can pass as a Shapester since it inherits from Shapester
-//		drawAShapester(g, star1);
+		//Java is OK with this because Starster can "pass" as a Shapester since it inherits from Shapester
 		
-		for(int i=0; i < shapes.length; ++i)
-		{
-			drawAShapester(g, shapes[i]);
-		}
+		//****!comment this out for the diamonster homework
+		drawAShapester(g, star1);
+		
+		// FOR ASSIGNMENT PART 2 (STEP 3): MAKE A FOR LOOP HERE
+		// THAT GOES THROUGH EACH DIAMONDSTER IN THE shapes ARRAY
+		// AND CALLS drawAShapester() with it
+		// (USE THE LENGTH PROPERTY OF THE shapes ARRAY: shapes.length TO SET THE LIMIT
+		// IN THE FOR LOOP. int i = 0; i < shapes.length; ++i etc.
+		
 		
 	}
 	
 	private void drawAShapester(Graphics2D g, Shapester the_shapester)
 	{
-		
 		g.setPaint(the_shapester.getColor());
 		
 		Point2D.Double[] points = the_shapester.getPoints();
