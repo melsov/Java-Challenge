@@ -1,5 +1,10 @@
 package trirunner;
 
+/*
+ * GO OVER CONCEPTS AND ASSOCIATED LINGO
+ * SURROUNDING METHODS (RETURN TYPE NAME(PARAMETERS...))
+ */
+
 import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Graphics;

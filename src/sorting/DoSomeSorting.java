@@ -2,9 +2,9 @@ package sorting;
 
 import static java.lang.System.out;
 
-public class DoSomeSorting {
-
-	int array_size = 100000;
+public class DoSomeSorting 
+{
+	int array_size = 1000;
 	private int[] original_nums = new int[array_size];
 //	private int[] nums = new int[array_size];
 	/**
@@ -71,7 +71,6 @@ public class DoSomeSorting {
 		end = System.nanoTime();
 		
 		logHowLong(end - start, "quick");
-		
 		logNums(nums);
 	}
 	
@@ -80,10 +79,15 @@ public class DoSomeSorting {
 		  int len = data.length;
 		  int key = 0;
 		  int i = 0;
+		  
+		  //START WITH THE SECOND ELEMENT IN THE ARRAY
+		  //(WHOSE INDEX IS 1)
 		  for(int j = 1;j<len;j++)
 		  {
 			  key = data[j];
 			  i = j-1;
+			  //WHILE THE ELEMENT BEFORE j IS GREATER
+			  //THAN THE ONE AT j, SWAP THEM
 			  while(i>=0 && data[i]>key)
 			  {
 				  data[i+1] = data[i];
@@ -92,7 +96,7 @@ public class DoSomeSorting {
 			  }
 		  }
 		  return data;
-		}
+	}
 	
 	private int[] bubbleSort(int[] nums)
 	{
@@ -100,7 +104,7 @@ public class DoSomeSorting {
 		{
 			for(int k = i; k > 0; --k)
 			{
-				if (nums[k] < nums[k - 1])
+				if (nums[k] > nums[k - 1])
 				{
 					break;
 				}
@@ -119,8 +123,8 @@ public class DoSomeSorting {
 		int ind = lenD/2;
 		int i,j = 0,k = 0;
 		
-		//IS THIS AN ARRAY WITH JUST ONE ELEMENT?
-		// IF SO, RETURN IT
+		// IS THIS AN ARRAY WITH JUST ONE ELEMENT?
+		// IF SO, RETURN THE ARRAY
 		if(lenD<2)
 		{
 			return data;
@@ -135,10 +139,10 @@ public class DoSomeSorting {
 			//THIRD ARRAY TO USE LATER
 			int[] sorted = new int[lenD];
 			
-			//AND CHOOSE SOME NUMBER FROM THE ORIG ARRAY
+			//CHOOSE SOME NUMBER FROM THE ORIG ARRAY
 			pivot = data[ind];
 			
-			//AND PUT ALL ELEMENTS LESS THAN PIVOT INTO "LEFT"
+			// AND PUT ALL ELEMENTS LESS THAN PIVOT INTO "LEFT"
 			// AND GREATER THAN PIVOT INTO RIGHT...
 			// AND KEEP TRACK OF HOW MANY WENT INTO EACH (WITH j and k)
 			for(i=0;i<lenD;i++)
@@ -164,8 +168,8 @@ public class DoSomeSorting {
 			System.arraycopy(L, 0, sortedL, 0, j);
 			System.arraycopy(R, 0, sortedR, 0, k);
 			
-			//THE OUTRAGEOUS PART
-			//SIMPLY CALL THE SAME FUNCTION ON THESE TWO NEW ARRAYS
+			// THE 'OUTRAGEOUS' PART
+			// SIMPLY CALL THE SAME FUNCTION ON THESE TWO NEW ARRAYS
 			sortedL = quickSort(sortedL);
 			sortedR = quickSort(sortedR);
 			
@@ -181,14 +185,15 @@ public class DoSomeSorting {
 	
 	private void logNums(int[] nums)
 	{
-		return;
-//		for(int i: nums)
-//		{
-//			out.print(i + ", ");
-//		}
-//		out.println();
+		if(array_size > 999)
+			return;
+		//THIS IS SHORT-HAND FOR: for(int b = 0; b < nums.length; ++b) { int i = nums[b]; //...do stuff with i ... } 
+		for(int i: nums)
+		{
+			out.print(i + ", ");
+		}
+		out.println();
 	}
-	
 	
 	private void logHowLong(long duration, String sort_name) 
 	{

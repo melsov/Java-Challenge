@@ -232,7 +232,7 @@ public class TriRunner extends JApplet implements ActionListener
 		//And drawAShapester asks for a Shapester type object.
 		//Java is OK with this because Starster can "pass" as a Shapester since it inherits from Shapester
 		
-		//****!comment this out for the diamonster homework
+		//****!comment this out for the diamondster homework
 		drawAShapester(g, star1);
 		
 		// FOR ASSIGNMENT PART 2 (STEP 3): MAKE A FOR LOOP HERE
@@ -244,6 +244,20 @@ public class TriRunner extends JApplet implements ActionListener
 		
 	}
 	
+	
+	//AFTER ASSIGNMENT 2:
+	//WE WANT TO CHANGE THE WHOLE RELATIONSHIP BETWEEN
+	//TRIRUNNER AND SHAPESTER. SPECIFICALLY,
+	//WE WANT TO GIVE SHAPESTER A PUBLIC METHOD
+	//"DRAW" THAT WILL REPLACE THE FUNCTIONALITY
+	//OF THE DRAW-A-SHAPESTER METHOD.
+	//THE MOTIVATION FOR DOING THIS IS THAT THIS WAY
+	//SHAPESTER CLASSES WON'T NECESSARILY HAVE TO USE POINTS 
+	// (THE GETPOINTS METHOD WILL NO LONGER BE A 
+	//	PUBLIC METHOD)
+	// THEY COULD USE AN IMAGE INSTEAD.
+	// THE 'DRAW' METHOD WILL TAKE A Graphics2D OBJECT AS A PARAMETER
+	//
 	private void drawAShapester(Graphics2D g, Shapester the_shapester)
 	{
 		g.setPaint(the_shapester.getColor());
