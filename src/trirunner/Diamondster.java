@@ -31,6 +31,7 @@ public class Diamondster extends Shapester
 	public Color getColor(){
 		return color;
 	}
+	
 	public Point.Double[] getPoints()
     	{
 		return new Point2D.Double[] {

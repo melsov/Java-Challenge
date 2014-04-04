@@ -91,7 +91,7 @@ public class TriRunner extends JApplet implements ActionListener
 	
 	private Shapester shape1;
 	private Starster star1;
-	// ADD A DIAMONDSTER HERE
+	private Diamondster quartz;
 	
 	private static int BOARDWIDTH = 850;
 	private static int BOARDHEIGHT = 950;
@@ -159,6 +159,8 @@ public class TriRunner extends JApplet implements ActionListener
 		// a TriRunner type object.
 		timer = new Timer(5, this);
         timer.start();
+       Color col = new Color(1.0f,0.3f,0.3f,0.7f);
+        quartz= new Diamondster(50,50, col);
         
 /*		
  * 	ASSIGNMENT 2: 
@@ -232,8 +234,13 @@ public class TriRunner extends JApplet implements ActionListener
 		//And drawAShapester asks for a Shapester type object.
 		//Java is OK with this because Starster can "pass" as a Shapester since it inherits from Shapester
 		
+<<<<<<< HEAD
 		//****!comment this out for the diamondster homework
 		drawAShapester(g, star1);
+=======
+		//****!comment this out for the diamonster homework
+		drawAShapester(g, quartz);
+>>>>>>> FETCH_HEAD
 		
 		// FOR ASSIGNMENT PART 2 (STEP 3): MAKE A FOR LOOP HERE
 		// THAT GOES THROUGH EACH DIAMONDSTER IN THE shapes ARRAY
@@ -291,7 +298,7 @@ public class TriRunner extends JApplet implements ActionListener
 		
 		star1.moveALittle();
 
-
+		quartz.moveALittle();
 		repaint(); //causes the 'paint' method to be called again.
 		
 		
