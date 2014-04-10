@@ -22,8 +22,8 @@ public class SillyPanel extends JPanel implements ActionListener
 	private static int TILE_WIDTH_PIXELS = WIDTH_PIXELS/ZeldaMap.COLUMNS;
 	private static int TILE_HEIGHT_PIXELS = HEIGHT_PIXELS/ZeldaMap.ROWS;
 	
-	private Image canvas;
-	private Graphics cg;
+	private Image canvas; /*off-screen image*/
+	private Graphics cg; /*the graphics of the off-screen image*/
 	
 	private ZeldaMap zeldaMap = new ZeldaMap();
 	private HashMap<Integer, Image> imageLookup = new HashMap<Integer, Image>();
@@ -49,6 +49,7 @@ public class SillyPanel extends JPanel implements ActionListener
 		
 		setupProtagonist();
 		
+		//MAKE THE GAME START
 		timer = new Timer(12, this);
 		timer.start();
 	}
