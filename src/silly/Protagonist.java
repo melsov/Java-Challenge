@@ -65,14 +65,19 @@ public class Protagonist
 	private void moveTo(int xx, int yy) {
 		if (!checkWall(xx, yy))
 		{
-			x = xx;
-			y = yy;
-//			if (!moveSoundThread.isAlive())
-//			{
-//				moveSoundThread.start();
-//			}
-			playSound("crunch.wav");
+			if (serverSaysItsOKToMove(xx,yy))
+			{
+				x = xx;
+				y = yy;
+	
+				playSound("crunch.wav");
+			}
 		}
+	}
+	
+	private boolean serverSaysItsOKToMove(int xx, int yy) 
+	{
+		return true; //method stub
 	}
 	
 	private boolean checkWall(int xx, int yy) {

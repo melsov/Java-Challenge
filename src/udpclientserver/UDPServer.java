@@ -4,18 +4,7 @@ package udpclientserver;
 import java.io.*;
 import java.net.*;
 
-
-import javax.swing.JTextArea.*;
 import javax.swing.*;
-
-import java.util.*;
-import javax.swing.event.DocumentEvent;
-import javax.swing.event.DocumentListener;
-import java.awt.event.ActionEvent;
-import javax.swing.text.BadLocationException;
-import javax.swing.GroupLayout.*;
-
-import silly.SillyPanel;
 
 class UDPServer extends JFrame
 {
@@ -24,6 +13,7 @@ class UDPServer extends JFrame
 	
 	public UDPServer()
 	{
+		//SET UP OUTPUT WINDOW
 		setTitle("UDP Server");
 		setDefaultCloseOperation(EXIT_ON_CLOSE);
         setSize(400, 500);
@@ -61,7 +51,7 @@ class UDPServer extends JFrame
 			DatagramPacket receivePacket = new DatagramPacket(receiveData, receiveData.length);
 			serverSocket.receive(receivePacket);
 			String sentence = new String( receivePacket.getData());
-			System.out.println("RECEIVED: " + sentence);
+
 			udpserver.writeToPanel("Received: " + sentence + "\n");
 			
 			//SEND

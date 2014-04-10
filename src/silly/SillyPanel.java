@@ -124,13 +124,7 @@ public class SillyPanel extends JPanel implements ActionListener
 		Image groundImage = imageWithName("ground.png");
 		imageLookup.put(ZeldaMap.GROUND, groundImage);
 	}
-	
-	private Image imageWithName(String imageName) 
-	{
-		ImageIcon ii = new ImageIcon(this.getClass().getResource(imageName));
-        return ii.getImage();
-	}
-	
+
 	private void setupProtagonist()
 	{
 		Image normImage = imageWithName("normalLink.png");
@@ -144,10 +138,16 @@ public class SillyPanel extends JPanel implements ActionListener
 		protagonist.setY(5);
 	}
 	
+	private Image imageWithName(String imageName) 
+	{
+		ImageIcon ii = new ImageIcon(this.getClass().getResource(imageName));
+        return ii.getImage();
+	}
+		
 	private class MyKeyAdapter extends KeyAdapter
 	{
 //		public void keyReleased(KeyEvent e) {
-//            protagonist.keyReleased(e);
+//            protagonist.keyPressed(e);
 //        }
 
         public void keyPressed(KeyEvent e) {
