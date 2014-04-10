@@ -160,7 +160,7 @@ public class TriRunner extends JApplet implements ActionListener
 		timer = new Timer(5, this);
         timer.start();
        Color col = new Color(1.0f,0.3f,0.3f,0.7f);
-        quartz= new Diamondster(50,50, col);
+//        quartz= new Diamondster(50,50, col);
         
 /*		
  * 	ASSIGNMENT 2: 
@@ -197,8 +197,20 @@ public class TriRunner extends JApplet implements ActionListener
 				//GET RID OF ALL OF THESE LINES
 				// AND REPLACE WITH SOMETHING SIMILAR
 				// WHERE YOU CREATE A DIAMONDSTER INSTEAD
-				Starster star = new Starster(i * width * 2,j * height * 2);
-				star.color = new Color(i*30 %255, 122, j*40%155, 255);
+				double ypos = j * height;
+				double xpos = i * width;
+				Color clr = Color.red;
+				if (j % 2 == 1){
+					xpos += width / 2.0;
+					if (i % 2 == 0) {
+						clr = Color.yellow;
+					} else {
+						clr = Color.green;
+					}
+				}
+				
+				Diamondster star = new Diamondster(xpos,ypos, clr); // Starster(i * width * 2,j * height * 2);
+//				star.color = new Color(i*30 %255, 122, j*40%155, 255);
 				star.width = width;
 				star.height = height;
 				
@@ -228,19 +240,19 @@ public class TriRunner extends JApplet implements ActionListener
 		g.clearRect(0, 0, BOARDWIDTH, BOARDHEIGHT);
 		
 		//****!comment this out for the diamonster homework
-		drawAShapester(g, shape1);
+//		drawAShapester(g, shape1);
 		
 		//TIP/FACTOID!: star1 is actually a Starster object, not a Shapester object
 		//And drawAShapester asks for a Shapester type object.
 		//Java is OK with this because Starster can "pass" as a Shapester since it inherits from Shapester
 		
-<<<<<<< HEAD
+//<<<<<<< HEAD
 		//****!comment this out for the diamondster homework
-		drawAShapester(g, star1);
-=======
+//		drawAShapester(g, star1);
+//=======
 		//****!comment this out for the diamonster homework
-		drawAShapester(g, quartz);
->>>>>>> FETCH_HEAD
+//		drawAShapester(g, quartz);
+//>>>>>>> FETCH_HEAD
 		
 		// FOR ASSIGNMENT PART 2 (STEP 3): MAKE A FOR LOOP HERE
 		// THAT GOES THROUGH EACH DIAMONDSTER IN THE shapes ARRAY
@@ -248,6 +260,12 @@ public class TriRunner extends JApplet implements ActionListener
 		// (USE THE LENGTH PROPERTY OF THE shapes ARRAY: shapes.length TO SET THE LIMIT
 		// IN THE FOR LOOP. int i = 0; i < shapes.length; ++i etc.
 		
+		for(int i = 0; i < shapes.length; ++i)
+		{
+			Shapester sh = shapes[i];
+//			sh.x = i * sh.width;
+			drawAShapester(g, sh);
+		}
 		
 	}
 	
