@@ -1,1 +1,0 @@
-/System/Library/Java/JavaVirtualMachines/1.6.0.jdk/Contents/Home/bin/java -Dfile.encoding=MacRoman -classpath /Users/didyouloseyourdog/all_codes/TEST_EC_SPACE/JavaChallenges/bin udpclientserver.UDPClient

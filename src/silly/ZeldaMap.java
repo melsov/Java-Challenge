@@ -10,6 +10,9 @@ public class ZeldaMap
 	public static final int GROUND = 432;
 	public static final int WALL = 2;
 	
+	private IPoint2 spawnPlayerOnePoint = new IPoint2(5,4);
+	private IPoint2 spawnPlayerTwoPoint = new IPoint2(12,15);
+	
 	public ZeldaMap()
 	{
 		setupTiles();
@@ -24,7 +27,7 @@ public class ZeldaMap
 			{
 				if (i == 0 || j == 0 || i == COLUMNS - 1 || j == ROWS - 1)
 				{
-					tile_column[j] = WALL; 
+					tile_column[j] = WALL;
 				} else {
 					tile_column[j] = GROUND;
 				}
@@ -46,5 +49,12 @@ public class ZeldaMap
 	public void set(int x, int y, int tile_type)
 	{
 		tiles[x][y] = tile_type;
+	}
+	
+	public IPoint2 spawnPointForPlayer(int playerNum) {
+		//TODO: acutally check which player we are.
+		if (playerNum == 0)
+			return spawnPlayerOnePoint;
+		return spawnPlayerTwoPoint;
 	}
 }
