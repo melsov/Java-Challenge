@@ -130,6 +130,7 @@ class ZeldaUDPServer extends JFrame
 			y = Integer.parseInt(yy.trim());
 		} catch(java.lang.NumberFormatException e) {
 			out.println("Exception...");
+			//TODO: tell other client that other player moved.
 			return "YES"; 
 		}
 		
