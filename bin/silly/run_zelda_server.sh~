@@ -1,0 +1,26 @@
+
+BINARY_PATH="/Users/didyouloseyourdog/all_codes/TEST_EC_SPACE/JavaChallenges/bin"
+echo ${PWD}
+exit 0
+#BINARY_PATH=${PWD##*/}
+echo "\n$BINARY_PATH\n"
+
+JPATH="/System/Library/Java/JavaVirtualMachines/1.6.0.jdk/Contents/Home/bin"
+if [ ! -d "$JPATH" ]; then
+    echo "The path to the java virtual machine doesn't seem to exist. \nThe directory that we tried:"
+    echo "$JPATH"
+    echo "These programs are untested on all JVMs except 1.6"
+    exit 1
+fi
+
+JPATH="$JPATH/java"
+
+$JPATH -Dfile.encoding=MacRoman -classpath $BINARY_PATH  silly.ZeldaUDPServer &
+read -t1 -n1 -r -p "waiting one seconds..." key
+
+$JPATH -Dfile.encoding=MacRoman -classpath $BINARY_PATH  silly.SillyFrame &
+read -t1 -n1 -r -p "waiting one seconds..." key
+
+$JPATH -Dfile.encoding=MacRoman -classpath $BINARY_PATH  silly.SillyFrame &
+
+echo "done"

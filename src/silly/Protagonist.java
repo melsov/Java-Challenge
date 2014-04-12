@@ -22,6 +22,8 @@ public class Protagonist
 	private Image normalImageP2;
 	private Image possessedImageP2;
 	
+	private IServerRequest serverDelegate;
+	
 	public boolean iAmPlayerOne;
 	
 	public int getX() {
@@ -38,15 +40,7 @@ public class Protagonist
 	}
 	
 	public Image getImage() {
-		return getImage(false);
-	}
-	
-	public Image getOtherImage() {
-		return getImage(true);
-	}
-	
-	private Image getImage(boolean wantOther) {
-		if (iAmPlayerOne != wantOther) {
+		if (iAmPlayerOne) {
 			if (isCurrentlyPossessed)
 				return possessedImage;
 			return normalImage;
@@ -57,13 +51,28 @@ public class Protagonist
 		}
 	}
 	
+	public Image getOtherImage() {
+		if (iAmPlayerOne) {
+			//TODO: be informed if other is possessed
+//			if (other is possessed)
+//				return possessedImageP2;
+			return normalImageP2;
+		} else {
+//			if (other is possessed)
+//				return possessedImage;
+			return normalImage;
+		}
+	}
+
+	
 	public void setOtherImages(Image normal, Image demon) {
 		normalImageP2 = normal;
 		possessedImageP2 = demon;
 	}
 	
-	public Protagonist(ZeldaMap zeldaMap_, Image normalImage_, Image possessedImage_)
+	public Protagonist(ZeldaMap zeldaMap_, Image normalImage_, Image possessedImage_, IServerRequest serverDelegate_)
 	{
+		serverDelegate = serverDelegate_;
 		zeldaMap = zeldaMap_;
 		normalImage = normalImage_;
 		possessedImage = possessedImage_;
@@ -74,18 +83,10 @@ public class Protagonist
 	        	try {
 					tellServerILeft();
 				} catch (IOException e) {
-					// TODO Auto-generated catch block
 					e.printStackTrace();
 				}
         	}
     	});
-		
-//		try {
-//			figureOutWhichPlayerIAm();
-//		} catch (IOException e) {
-//			// TODO Auto-generated catch block
-//			e.printStackTrace();
-//		}
 	}
 	
 	private void moveForward() {
@@ -120,32 +121,18 @@ public class Protagonist
 					playSound("crunch.wav");
 				}
 			} catch (IOException e) {
-				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
 		}
 	}
-	
-	private void figureOutWhichPlayerIAm() throws IOException
-	{
-		String response = requestFromServer(ZeldaUDPServer.WHICH_PLAYER_REQUEST);
-		if (response.equals("ONE"))
-		{
-			iAmPlayerOne = true;
-		} else if (response.equals("TWO")) {
-			iAmPlayerOne = false;
-		} else {
-			System.out.println("don't know which player??");
-			System.exit(1); //drop dead. too many players.
-		}
-	}
-	
+
 	private boolean serverSaysItsOKToMove(int xx, int yy) throws IOException 
 	{
 		String x_str = String.valueOf(xx);
 		String y_str = String.valueOf(yy);
+		String playerNum = String.valueOf(iAmPlayerOne ? 0 : 1);
 		  
-		String request = ZeldaUDPServer.MOVE_REQUEST + ":" + x_str + ":" + y_str;
+		String request = ZeldaUDPServer.MOVE_REQUEST + ":" + x_str + ":" + y_str + ":" + playerNum;
 		String response = requestFromServer(request);
 		
 		if (response.trim().equals("YES"))
@@ -160,25 +147,7 @@ public class Protagonist
 	
 	private String requestFromServer(String request) throws IOException
 	{
-		//TODO: try owning a copy of clientSocket?
-		DatagramSocket clientSocket = new DatagramSocket();
-		InetAddress IPAddress = InetAddress.getByName("localhost");
-		byte[] sendData = new byte[1024];
-		byte[] receiveData = new byte[1024];
-		
-		//TODO: rewrite so that this process can time out after a while.
-		sendData = request.getBytes();
-		  
-		//SEND
-		DatagramPacket sendPacket = new DatagramPacket(sendData, sendData.length, IPAddress, 9874);
-		clientSocket.send(sendPacket);
-		//RECEIVE
-		DatagramPacket receivePacket = new DatagramPacket(receiveData, receiveData.length);
-		clientSocket.receive(receivePacket);
-		String response = new String(receivePacket.getData());
-
-		clientSocket.close();
-		return response.trim();
+		return serverDelegate.requestFromServer(request);
 	}
 	
 	private boolean checkWall(int xx, int yy) {
@@ -189,25 +158,30 @@ public class Protagonist
 	{
 		int key = e.getKeyCode();
 		
-		int upkey = iAmPlayerOne ? KeyEvent.VK_W : KeyEvent.VK_UP;
-		int leftkey = iAmPlayerOne ? KeyEvent.VK_A : KeyEvent.VK_LEFT;
-		int downkey = iAmPlayerOne ? KeyEvent.VK_S : KeyEvent.VK_DOWN;
-		int rightkey = iAmPlayerOne ? KeyEvent.VK_D : KeyEvent.VK_RIGHT;
+		boolean same_computer_mode = true;
 		
-		if (key == upkey)
-		{
+		int upkey = KeyEvent.VK_W;
+		int leftkey = KeyEvent.VK_A;
+		int downkey = KeyEvent.VK_S;
+		int rightkey = KeyEvent.VK_D;
+		
+		if (same_computer_mode) {
+			upkey = iAmPlayerOne ? KeyEvent.VK_W : KeyEvent.VK_UP;
+			leftkey = iAmPlayerOne ? KeyEvent.VK_A : KeyEvent.VK_LEFT;
+			downkey = iAmPlayerOne ? KeyEvent.VK_S : KeyEvent.VK_DOWN;
+			rightkey = iAmPlayerOne ? KeyEvent.VK_D : KeyEvent.VK_RIGHT;
+		}
+		
+		if (key == upkey) {
 			moveUp();
 		}
-		if (key == leftkey)
-		{
+		if (key == leftkey) {
 			moveBackward();
 		}
-		if (key == downkey)
-		{
+		if (key == downkey) {
 			moveDown();
 		}
-		if (key == rightkey)
-		{
+		if (key == rightkey) {
 			moveForward();
 		}
 	}

@@ -1,6 +1,7 @@
 package silly;
 
 import java.io.*;
+
 import static java.lang.System.out;
 import java.net.*;
 
@@ -20,8 +21,17 @@ class ZeldaUDPServer extends JFrame
 	private int playerCount = 0;
 	private PlayerContactInfo[] playerRolodex = new PlayerContactInfo[2];
 	
+	private DatagramSocket serverSocket;
+	
 	public ZeldaUDPServer()
 	{
+		try {
+			serverSocket  = new DatagramSocket(9874);
+		} catch (SocketException e) {
+			System.out.println("Ahhh...I'm dead. no datagram socket");
+			e.printStackTrace();
+			System.exit(1);
+		}
 		//SET UP OUTPUT WINDOW
 		setTitle("Zelda UDP Server");
 		setDefaultCloseOperation(EXIT_ON_CLOSE);
@@ -53,29 +63,57 @@ class ZeldaUDPServer extends JFrame
 	public static void main(String args[]) throws Exception
 	{	
 		ZeldaUDPServer zeldaserver = new ZeldaUDPServer();
-		DatagramSocket serverSocket = new DatagramSocket(9874);
+		
 		byte[] receiveData = new byte[1024];
-		byte[] sendData = new byte[1024];
+		
 		while(true)
 		{
 			receiveData = new byte[1024]; //wipe out any old data
 			//RECEIVE
 			DatagramPacket receivePacket = new DatagramPacket(receiveData, receiveData.length);
-			serverSocket.receive(receivePacket);
+			zeldaserver.serverSocket.receive(receivePacket);
 			String sentence = new String( receivePacket.getData());
 
 			zeldaserver.writeToPanel("Received: " + sentence + "\n");
 			
 			//SEND
-			InetAddress IPAddress = receivePacket.getAddress();
-			int port = receivePacket.getPort();
+//			InetAddress IPAddress = receivePacket.getAddress();
+//			int port = receivePacket.getPort();
 			String response = zeldaserver.handleClientQuery(sentence, receivePacket);
-			zeldaserver.writeToPanel("Responded: to IP " + IPAddress.toString() + " port: " + port + " : " + response + "\n");
-			sendData = response.getBytes();
-			DatagramPacket sendPacket =
-				new DatagramPacket(sendData, sendData.length, IPAddress, port);
-			serverSocket.send(sendPacket);
+			zeldaserver.sendResponse(response, receivePacket.getAddress(), receivePacket.getPort());
+//			zeldaserver.writeToPanel("Responded: to IP " + IPAddress.toString() + " port: " + port + " : " + response + "\n");
+//			sendData = response.getBytes();
+//			DatagramPacket sendPacket =
+//				new DatagramPacket(sendData, sendData.length, IPAddress, port);
+//			serverSocket.send(sendPacket);
+			
+//			if (zeldaserver.playerRolodex[0] != null)
+//			{
+//				//send test msg;
+//				PlayerContactInfo pci = zeldaserver.playerRolodex[0];
+//				sendData = "hi from server".getBytes();
+//				DatagramPacket testPacket = new DatagramPacket(sendData, sendData.length, pci.IPAddress, pci.port);
+//				serverSocket.send(testPacket);
+//			}
        }
+	}
+	
+	private void sendResponse(String response, PlayerContactInfo pci) {
+		sendResponse(response, pci.IPAddress, pci.port);
+	}
+	private void sendResponse(String response, InetAddress IPAddress, int port)
+	{
+		byte[] sendData = new byte[1024];
+
+		writeToPanel("Responded: to IP " + IPAddress.toString() + " port: " + port + " : " + response + "\n");
+		sendData = response.getBytes();
+		DatagramPacket sendPacket =
+			new DatagramPacket(sendData, sendData.length, IPAddress, port);
+		try {
+			serverSocket.send(sendPacket);
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
 	}
 	
 	private String handleClientQuery(String message, DatagramPacket receivePacket)
@@ -108,9 +146,11 @@ class ZeldaUDPServer extends JFrame
 		{
 			response  = "ONE";
 			playerRolodex[0] = pci;
+			playerCount++;
 		} else if (playerCount == 1) {
 			response = "TWO";
 			playerRolodex[1] = pci;
+			playerCount++;
 		} else {
 			response = "NEITHER";
 		}
@@ -121,13 +161,16 @@ class ZeldaUDPServer extends JFrame
 	{
 		String xx = msg_parts[1];
 		String yy = msg_parts[2];
+		String playerIndex_string = msg_parts[3];
 		
 		int x;
 		int y;
+		int playerIndex = -1;
 		
 		try {
 			x = Integer.parseInt(xx.trim());
 			y = Integer.parseInt(yy.trim());
+			playerIndex = Integer.parseInt(playerIndex_string.trim());
 		} catch(java.lang.NumberFormatException e) {
 			out.println("Exception...");
 			//TODO: tell other client that other player moved.
@@ -137,6 +180,15 @@ class ZeldaUDPServer extends JFrame
 		if (mapOccupiedAt(x, y)) {
 			return "NO";
 		}
+		//tell other client that other player moved.
+		if (playerIndex == -1) {
+			System.out.println("Big problem: no player index in can I move message. exiting. playerIndex string was: " + playerIndex_string);
+			System.exit(1);
+		}
+		PlayerContactInfo other_pci = playerRolodex[playerIndex == 1 ? 0 : 1];
+		String response = ZeldaUDPServer.OTHER_MOVED + ":" + xx + ":" + yy;
+		sendResponse(response, other_pci);
+		
 		return "YES";
 	}
 	

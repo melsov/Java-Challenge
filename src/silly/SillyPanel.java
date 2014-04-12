@@ -3,6 +3,7 @@ package silly;
 import static java.lang.System.out;
 
 import java.awt.Color;
+import java.awt.Frame;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.Image;
@@ -18,6 +19,7 @@ import java.net.SocketException;
 import java.util.HashMap;
 
 import javax.swing.ImageIcon;
+import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.Timer;
 
@@ -36,7 +38,7 @@ public class SillyPanel extends JPanel implements ActionListener
 	private HashMap<Integer, Image> imageLookup = new HashMap<Integer, Image>();
 	
 	private Protagonist protagonist;
-	private ServerListener serverListener;
+	private ServerHandler serverHandler;
 	
 	private Timer timer;
 	
@@ -49,22 +51,37 @@ public class SillyPanel extends JPanel implements ActionListener
 	{
 		super.addNotify();
 		
+		String hostAddress = "";
+		//TODO: while they fail to give a ping-able server...
+		hostAddress = getServerNameFromUser();
+				
 		addKeyListener(new MyKeyAdapter());
 		setFocusable(true);
 		
 		setupCanvas();
 		drawTheWholeMap();
 		
-		serverListener = new ServerListener();
+		serverHandler = new ServerHandler(hostAddress);
 		
-		setupProtagonist();
 		
-		Thread t = new Thread(serverListener);
+		setupProtagonist(new ProtagonistServerDelegate(hostAddress));
+		
+		Thread t = new Thread(serverHandler);
 		t.start();
 		
 		//MAKE THE GAME START
 		timer = new Timer(12, this);
 		timer.start();
+	}
+	
+	private String getServerNameFromUser()
+	{
+		Frame f = new Frame();
+		f.setSize(400,500);
+		CustomDialog cd = new CustomDialog(f);
+		cd.pack();
+		cd.setVisible(true);
+		return cd.getAnswer();
 	}
 	
 	/*
@@ -135,8 +152,8 @@ public class SillyPanel extends JPanel implements ActionListener
 	
 	private void drawOther()
 	{
-		Image otherImage = imageWithName("normalLinkP2.png"); // protagonist.getOtherImage();
-		cg.drawImage(otherImage, serverListener.otherPlayerCoord.x * TILE_WIDTH_PIXELS, serverListener.otherPlayerCoord.y * TILE_HEIGHT_PIXELS, TILE_WIDTH_PIXELS, TILE_HEIGHT_PIXELS, null);
+		Image otherImage = protagonist.getOtherImage();
+		cg.drawImage(otherImage, serverHandler.otherPlayerCoord.x * TILE_WIDTH_PIXELS, serverHandler.otherPlayerCoord.y * TILE_HEIGHT_PIXELS, TILE_WIDTH_PIXELS, TILE_HEIGHT_PIXELS, null);
 	}
 	
 	private void setupImageLookup()
@@ -147,18 +164,15 @@ public class SillyPanel extends JPanel implements ActionListener
 		imageLookup.put(ZeldaMap.GROUND, groundImage);
 	}
 
-	private void setupProtagonist()
+	private void setupProtagonist(IServerRequest protagServerDelegate)
 	{
 		Image normImage = imageWithName("normalLink.png");
 		Image demonImage = imageWithName("demonLink.png");
 		
+		if (zeldaMap == null) { System.out.println("not cool. we need a zelda map at this point"); System.exit(1); }
 		
-		if (zeldaMap == null) // get mad
-		{
-			System.out.println("not cool. we need a zelda map at this point");
-		}
-		protagonist = new Protagonist(zeldaMap, normImage, demonImage);
-		protagonist.iAmPlayerOne = serverListener.playerNumber == 0 ? true : false;
+		protagonist = new Protagonist(zeldaMap, normImage, demonImage, protagServerDelegate);
+		protagonist.iAmPlayerOne = serverHandler.playerNumber == 0 ? true : false;
 		int playerNum = protagonist.iAmPlayerOne ? 0 : 1;
 		IPoint2 spawnPoint = zeldaMap.spawnPointForPlayer(playerNum);
 		protagonist.setX(spawnPoint.x);
@@ -186,112 +200,6 @@ public class SillyPanel extends JPanel implements ActionListener
 
 	}
 	
-	private class ServerListener implements Runnable
-	{
-//		public static final int SERVER_LISTENER_PORT = 9871;
-		public IPoint2 otherPlayerCoord = new IPoint2(0,0);
-		DatagramSocket listenerSocket = null;
-		public int playerNumber = -1;
-		
-		public ServerListener()
-		{
-			try {
-				listenerSocket = new DatagramSocket();
-			} catch (SocketException e1) {
-				// TODO Auto-generated catch block
-				e1.printStackTrace();
-			}
-		}
-		
-		private void sayHiToServer() 
-		{
-			String response = "";
-			try {
-				response = requestFromServer(ZeldaUDPServer.SAY_HI_REQUEST);
-			} catch (IOException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			}
-			
-			if (response.equals("ONE"))
-			{
-				playerNumber = 0;
-			} else if (response.equals("TWO")) {
-				playerNumber = 1;
-			}
-			
-		}
-		
-		private String requestFromServer(String request) throws IOException
-		{
-			InetAddress IPAddress = InetAddress.getByName("localhost");
-			byte[] sendData = new byte[1024];
-			byte[] receiveData = new byte[1024];
-			
-			//TODO: rewrite so that this process can time out after a while.
-			sendData = request.getBytes();
-			  
-			//SEND
-			DatagramPacket sendPacket = new DatagramPacket(sendData, sendData.length, IPAddress, 9874);
-			listenerSocket.send(sendPacket);
-			//RECEIVE
-			DatagramPacket receivePacket = new DatagramPacket(receiveData, receiveData.length);
-			listenerSocket.receive(receivePacket);
-			String response = new String(receivePacket.getData());
 
-//			listenerSocket.close();
-			return response.trim();
-		}
-		
-		@Override
-		public void run() 
-		{
-			byte[] receiveData = new byte[1024];
-
-			while(true)
-			{
-				receiveData = new byte[1024]; //wipe out any old data
-				//RECEIVE
-				DatagramPacket receivePacket = new DatagramPacket(receiveData, receiveData.length);
-				try {
-					listenerSocket.receive(receivePacket);
-				} catch (IOException e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
-				}
-				String sentence = new String( receivePacket.getData());
-				handleClientQuery(sentence);
-
-	       }
-			
-		}
-		
-		private void handleClientQuery(String message)
-		{
-			String[] msg_parts = message.split(":");
-			String msg_header = msg_parts[0].trim();
-			
-			if (msg_header.equals(ZeldaUDPServer.OTHER_MOVED)) {
-				handleOtherMoved(msg_parts);
-			}
-		}
-		
-		private void handleOtherMoved(String[] msg_parts)
-		{
-			String xx = msg_parts[1];
-			String yy = msg_parts[2];
-			
-			int x = -1;
-			int y = -1;
-			
-			try {
-				x = Integer.parseInt(xx.trim());
-				y = Integer.parseInt(yy.trim());
-			} catch(java.lang.NumberFormatException e) {
-				out.println("Exception...");
-			}
-			otherPlayerCoord = new IPoint2(x,y);
-		}
-	}
 
 }

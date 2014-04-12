@@ -1,24 +1,28 @@
+#BINARY_PATH="/Users/YOUR_USER_NAME/all_codes/TEST_EC_SPACE/JavaChallenges/bin"
+
 if [ "$#" -eq  0 ]; then
     echo "USAGE: sh run_zelda.sh OPTION_NUMBER \n where OPTION_NUMBER could be:\n 0 (just server)\n 1 (just client)\n 2 (both)\n 3 (server and two clients)\n"
     exit 1
 fi
 
 OPT=$1
+
 BINARY_PATH=${PWD}
-JPATH="/System/Library/Java/JavaVirtualMachines/1.6.0.jdk/Contents/Home/bin"
+
 ZSERVER_PATH="$BINARY_PATH/silly/ZeldaUDPServer.class"
 if [ ! -f "$ZSERVER_PATH" ]; then
     echo "find zelda server binary failed"
     echo "this script wants to be in the bin directory. \n looks for a folder named 'silly' and a file named 'ZeldaUDPServer.class'"
-    echo "(Or just edit the variable BINARY_PATH as needed)"
     exit 1
 fi
+JPATH="/System/Library/Java/JavaVirtualMachines/1.6.0.jdk/Contents/Home/bin"
 if [ ! -d "$JPATH" ]; then
     echo "The path to the java virtual machine doesn't seem to exist. \nThe directory that we tried:"
     echo "$JPATH"
     echo "These programs are untested on all JVMs except 1.6"
     exit 1
 fi
+
 JPATH="$JPATH/java"
 echo "$OPT"
 if [ "$OPT" -ne 1 ]; then
