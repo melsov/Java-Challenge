@@ -7,7 +7,7 @@ import java.net.*;
 
 import javax.swing.*;
 
-import silly.IPoint2;
+import silly.Point2I;
 import silly.PlayerContactInfo;
 import silly.PlayerInfo;
 
@@ -25,7 +25,8 @@ public class ZeldaUDPServer extends JFrame
 	public static String I_LEFT_THE_GAME_REQUEST = "ILEFTTHEGAME";
 	public static String I_GOT_JELLY = "IGOTJELLY";
 	public static String SAY_HI_REQUEST = "CLIENTLISTENERSAYSHI";
-	
+
+	public static String OTHER_ARRIVED = "OTHERARRIVED";
 	public static String OTHER_MOVED = "OTHERMOVED";
 	public static String OTHER_GOT_JELLY = "OTHERGOTJELLY";
 	
@@ -184,24 +185,25 @@ public class ZeldaUDPServer extends JFrame
 			y = Integer.parseInt(yy.trim());
 			playerIndex = Integer.parseInt(playerIndex_string.trim());
 		} catch(java.lang.NumberFormatException e) {
-			out.println("Exception...");
+			out.println("Number format exception ...");
+			
 			//TODO: tell other client that other player moved.
 			return "YES"; 
 		}
 		
-		//tell other client that other player moved.
 		if (playerIndex == -1) {
 			System.out.println("Big problem: no player index in can I move message. exiting. playerIndex string was: " + playerIndex_string);
 			System.exit(1);
 		}
 		PlayerInfo otherPlayerInfo  = playerRolodex[playerIndex == 1 ? 0 : 1];
 
-		if (mapOccupiedAt(x, y, otherPlayerInfo.coord)) {
+		if (mapOccupiedAt(x, y, otherPlayerInfo.gameStats.coord)) {
 			return "NO";
 		}
 		PlayerInfo thisPlayerInfo = playerRolodex[playerIndex];
-		thisPlayerInfo.coord = new IPoint2(x,y);
+		thisPlayerInfo.gameStats.coord = new Point2I(x,y);
 		
+		//tell other client that other player moved.
 		String response = ZeldaUDPServer.OTHER_MOVED + ":" + xx + ":" + yy;
 		sendResponse(response, otherPlayerInfo.contactInfo);
 		
@@ -213,13 +215,15 @@ public class ZeldaUDPServer extends JFrame
 		String xx = msg_parts[1];
 		String yy = msg_parts[2];
 		String playerIndex_string = msg_parts[3];
+		String jjCount = msg_parts[4];
 
 		int playerIndex = -1;
-		
+		int jellyCount = -1;
 		try {
 			playerIndex = Integer.parseInt(playerIndex_string.trim());
+			jellyCount = Integer.parseInt(jjCount.trim());
 		} catch(java.lang.NumberFormatException e) {
-			out.println("Exception...");
+			out.println("Exception in parse jelly Count string ?...jjCount: " + jjCount);
 		}
 		
 		//tell other client that other player moved.
@@ -227,12 +231,13 @@ public class ZeldaUDPServer extends JFrame
 			System.out.println("Big problem: no player index in can I move message. exiting. playerIndex string was: " + playerIndex_string);
 			System.exit(1);
 		}
-		PlayerInfo otherPlayerInfo  = playerRolodex[playerIndex == 1 ? 0 : 1];
 
 		PlayerInfo thisPlayerInfo = playerRolodex[playerIndex];
-		thisPlayerInfo.jellyCount++;
+		thisPlayerInfo.gameStats.jellyCount = jellyCount;
 		
-		String response = ZeldaUDPServer.OTHER_GOT_JELLY + ":" + xx + ":" + yy + ":" + thisPlayerInfo.jellyCount;
+		//tell other player about this
+		PlayerInfo otherPlayerInfo  = playerRolodex[playerIndex == 1 ? 0 : 1];
+		String response = ZeldaUDPServer.OTHER_GOT_JELLY + ":" + xx + ":" + yy + ":" + thisPlayerInfo.gameStats.jellyCount;
 		sendResponse(response, otherPlayerInfo.contactInfo);
 		
 	}
@@ -254,9 +259,9 @@ public class ZeldaUDPServer extends JFrame
 		playerCount--;
 	}
 	
-	private boolean mapOccupiedAt(int xx, int yy, IPoint2 otherCoord)
+	private boolean mapOccupiedAt(int xx, int yy, Point2I otherCoord)
 	{
-		return otherCoord.equal(new IPoint2(xx,yy));
+		return otherCoord.equal(new Point2I(xx,yy));
 	}
 	
 }

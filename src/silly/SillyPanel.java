@@ -47,7 +47,11 @@ public class SillyPanel extends JPanel implements ActionListener, IServerHandler
 	public void addNotify()
 	{
 		super.addNotify();
-		
+		doStartOfGameStuff();
+	}
+	
+	private void doStartOfGameStuff()
+	{
 		String hostAddress = "";
 		//TODO: while they fail to give a ping-able server...
 		hostAddress = getServerNameFromUser();
@@ -67,14 +71,37 @@ public class SillyPanel extends JPanel implements ActionListener, IServerHandler
 		
 		//MAKE THE GAME START
 		timer = new Timer(12, this);
-		timer.start();
+		timer.start();		
+	}
+
+	@Override
+	public void otherHasArrived() {
+		protagonist.otherHasArrived();
+	}
+	
+	public GameStats playerGameStats() {
+		return protagonist.myStats;
+	}
+	
+	public void introduceOther(GameStats otherStats) {
+		
+	}
+	
+	private String getGameHandleFromUser()
+	{
+		Frame f = new Frame();
+		f.setSize(400,500);
+		CustomDialog cd = new CustomDialog(f,  "Tell me your name:",RandomNameGenerator.GetName() );
+		cd.pack();
+		cd.setVisible(true);
+		return cd.getAnswer();
 	}
 	
 	private String getServerNameFromUser()
 	{
 		Frame f = new Frame();
 		f.setSize(400,500);
-		CustomDialog cd = new CustomDialog(f);
+		CustomDialog cd = new CustomDialog(f,  "Tell me the server that you want to connect to:", "localhost" );
 		cd.pack();
 		cd.setVisible(true);
 		return cd.getAnswer();
@@ -96,7 +123,7 @@ public class SillyPanel extends JPanel implements ActionListener, IServerHandler
 		drawTheWholeMap();
 		drawOther();
 		drawProtagonist();
-		GUIPainter.paintGameInfo(cg, 12, 12);
+		GUIPainter.paintGameInfo(cg, protagonist.myStats, protagonist.otherStats);
 		
 	}
 	
@@ -154,7 +181,7 @@ public class SillyPanel extends JPanel implements ActionListener, IServerHandler
 	private void drawOther()
 	{
 		Image otherImage = protagonist.getOtherImage();
-		cg.drawImage(otherImage, serverHandler.otherPlayerCoord.x * TILE_WIDTH_PIXELS, serverHandler.otherPlayerCoord.y * TILE_HEIGHT_PIXELS, TILE_WIDTH_PIXELS, TILE_HEIGHT_PIXELS, null);
+		cg.drawImage(otherImage, protagonist.otherStats.coord.x * TILE_WIDTH_PIXELS, protagonist.otherStats.coord.y * TILE_HEIGHT_PIXELS, TILE_WIDTH_PIXELS, TILE_HEIGHT_PIXELS, null);
 	}
 	
 	private void setupImageLookup()
@@ -174,10 +201,13 @@ public class SillyPanel extends JPanel implements ActionListener, IServerHandler
 		
 		if (zeldaMap == null) { System.out.println("not cool. we need a zelda map at this point"); System.exit(1); }
 		
+		String playerName = getGameHandleFromUser();
+		
 		protagonist = new Protagonist(zeldaMap, normImage, demonImage, protagServerDelegate);
+		protagonist.myStats.playerName = playerName;
 		protagonist.iAmPlayerOne = serverHandler.playerNumber == 0 ? true : false;
 		int playerNum = protagonist.iAmPlayerOne ? 0 : 1;
-		IPoint2 spawnPoint = zeldaMap.spawnPointForPlayer(playerNum);
+		Point2I spawnPoint = zeldaMap.spawnPointForPlayer(playerNum);
 		protagonist.setX(spawnPoint.x);
 		protagonist.setY(spawnPoint.y);
 		
@@ -204,12 +234,23 @@ public class SillyPanel extends JPanel implements ActionListener, IServerHandler
 	}
 
 	@Override
-	public void otherGotJellyAt(IPoint2 point) {
-		// TODO Auto-generated method stub
+	public void otherGotJellyAt(Point2I point) {
 		zeldaMap.removeJelly(point.x,point.y);
 		
 	}
-	
+
+	@Override
+	public void updateOtherJellyCount(int otherJellyCount) {
+		protagonist.otherStats.jellyCount = otherJellyCount;
+		
+	}
+
+	@Override
+	public void updateOtherCoord(Point2I point) {
+		// TODO Auto-generated method stub
+		protagonist.otherStats.coord = point;
+	}
+
 
 
 }

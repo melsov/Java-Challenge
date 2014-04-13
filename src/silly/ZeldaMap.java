@@ -13,8 +13,8 @@ public class ZeldaMap
 	
 	public static final int RED_JELLY = 243;
 	
-	private IPoint2 spawnPlayerOnePoint = new IPoint2(5,4);
-	private IPoint2 spawnPlayerTwoPoint = new IPoint2(12,15);
+	private Point2I spawnPlayerOnePoint = new Point2I(5,4);
+	private Point2I spawnPlayerTwoPoint = new Point2I(12,15);
 	
 	public ZeldaMap()
 	{
@@ -88,7 +88,7 @@ public class ZeldaMap
 		jellyMap[x][y] = jelly_type;
 	}
 	
-	public IPoint2 spawnPointForPlayer(int playerNum) {
+	public Point2I spawnPointForPlayer(int playerNum) {
 		//TODO: acutally check which player we are.
 		if (playerNum == 0)
 			return spawnPlayerOnePoint;

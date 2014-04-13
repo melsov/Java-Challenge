@@ -12,8 +12,6 @@ import silly.server.ZeldaUDPServer;
 
 public class ServerHandler implements Runnable
 {
-	public IPoint2 otherPlayerCoord = new IPoint2(0,0);
-	public int otherJellyCount = 0;
 	DatagramSocket listenerSocket = null;
 	public int playerNumber = -1;
 	private String serverIP = ""; // "localhost";
@@ -42,7 +40,7 @@ public class ServerHandler implements Runnable
 	{
 		String response = "";
 		try {
-			response = requestFromServer(ZeldaUDPServer.SAY_HI_REQUEST);
+			response = requestFromServer(ZeldaUDPServer.SAY_HI_REQUEST ); 
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
@@ -106,7 +104,7 @@ public class ServerHandler implements Runnable
 			String sentence = new String( receivePacket.getData());
 			handleClientQuery(sentence);
 
-       }
+		}
 		
 	}
 	
@@ -137,7 +135,8 @@ public class ServerHandler implements Runnable
 		} catch(java.lang.NumberFormatException e) {
 			out.println("Exception...");
 		}
-		otherPlayerCoord = new IPoint2(x,y);
+//		otherPlayerCoord = new Point2I(x,y);
+		updateDelegate.updateOtherCoord(new Point2I(x,y));
 	}
 	
 	private void handleOtherGotJelly(String[] msg_parts)
@@ -157,7 +156,8 @@ public class ServerHandler implements Runnable
 		} catch(java.lang.NumberFormatException e) {
 			out.println("Exception...");
 		}
-		otherJellyCount = jcount;
-		updateDelegate.otherGotJellyAt(new IPoint2(x,y));
+
+		updateDelegate.updateOtherJellyCount(jcount);
+		updateDelegate.otherGotJellyAt(new Point2I(x,y));
 	}
 }

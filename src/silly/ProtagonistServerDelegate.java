@@ -43,9 +43,9 @@ public class ProtagonistServerDelegate implements IServerRequest
 		//TODO: make this process time out after a while.
 		sendData = request.getBytes();
 
+		//SEND
 		String response = "";
 		try {
-			//SEND
 			DatagramPacket sendPacket = new DatagramPacket(sendData, sendData.length, IPAddress, 9874);
 			clientSocket.send(sendPacket);
 		} catch (IOException e) {
@@ -57,7 +57,6 @@ public class ProtagonistServerDelegate implements IServerRequest
 		try {
 			clientSocket.receive(receivePacket);
 		} catch (java.net.SocketTimeoutException toE) {
-			System.out.print("time out exception maybe? \n");
 			toE.printStackTrace();
 		} catch (IOException e) {
 			e.printStackTrace();

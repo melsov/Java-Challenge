@@ -69,17 +69,17 @@ class CustomDialog extends JDialog
     }
  
     /** Creates the reusable dialog. */
-    public CustomDialog(Frame aFrame) 
+    public CustomDialog(Frame aFrame, String question, String initialAnswer) 
     {
     	super(aFrame, true);
 
         setTitle("Which host??");
         
         textField = new JTextField(10);
-        textField.setText("localhost");
+        textField.setText(initialAnswer);
         
         //Create an array of the text and components to be displayed.
-        String msgString1 = "Tell me the server that you want to connect to:";
+        String msgString1 = question; 
 //        String msgString2 = "";
         Object[] array = {msgString1, textField};
  

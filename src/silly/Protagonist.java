@@ -13,7 +13,7 @@ public class Protagonist
 {
 	private int x, y;
 	public ZeldaMap zeldaMap;
-	public boolean isCurrentlyPossessed = false;
+//	public boolean isCurrentlyPossessed = false;
 	
 	private Image normalImage;
 	private Image possessedImage;
@@ -21,9 +21,10 @@ public class Protagonist
 	private Image possessedImageP2;
 	
 	private IServerRequest serverDelegate;
-	
-	public int jellyCount = 0;
+
 	public boolean iAmPlayerOne;
+	public GameStats myStats = new GameStats();
+	public GameStats otherStats = new GameStats();
 	
 	public int getX() {
 		return x;
@@ -40,11 +41,11 @@ public class Protagonist
 	
 	public Image getImage() {
 		if (iAmPlayerOne) {
-			if (isCurrentlyPossessed)
+			if (myStats.isPossessed)
 				return possessedImage;
 			return normalImage;
 		} else {
-			if (isCurrentlyPossessed)
+			if (myStats.isPossessed)
 				return possessedImageP2;
 			return normalImageP2;
 		}
@@ -52,13 +53,12 @@ public class Protagonist
 	
 	public Image getOtherImage() {
 		if (iAmPlayerOne) {
-			//TODO: be informed if other is possessed
-//			if (other is possessed)
-//				return possessedImageP2;
+			if (otherStats.isPossessed)
+				return possessedImageP2;
 			return normalImageP2;
 		} else {
-//			if (other is possessed)
-//				return possessedImage;
+			if (otherStats.isPossessed)
+				return possessedImage;
 			return normalImage;
 		}
 	}
@@ -75,9 +75,11 @@ public class Protagonist
 		normalImage = normalImage_;
 		possessedImage = possessedImage_;
 		
+		//inform server before shutting down.
+		//(Rumor has it that this doesn't always work. Works in testing however)
 		Runtime.getRuntime().addShutdownHook(new Thread() {
         	public void run() {
-	        	System.out.println("Shutdown Hook is running !");
+	        	System.out.println("Shutdown Hook is running!");
 	        	try {
 					tellServerILeft();
 				} catch (IOException e) {
@@ -85,6 +87,10 @@ public class Protagonist
 				}
         	}
     	});
+	}
+	
+	public void otherHasArrived() {
+		//extend introduction to other
 	}
 	
 	private void moveForward() {
@@ -118,6 +124,7 @@ public class Protagonist
 
 					playSound("crunch.wav");
 					if (zeldaMap.jellyAt(x, y) != 0) {
+						myStats.jellyCount++;
 						tellServerThatIGotJelly(x,y);
 						zeldaMap.removeJelly(x,y);
 					}
@@ -147,8 +154,8 @@ public class Protagonist
 		String x_str = String.valueOf(xx);
 		String y_str = String.valueOf(yy);
 		String playerNum = String.valueOf(iAmPlayerOne ? 0 : 1);
-		  
-		String request = ZeldaUDPServer.I_GOT_JELLY + ":" + x_str + ":" + y_str + ":" + playerNum;
+		String jCountString = String.valueOf(myStats.jellyCount);
+		String request = ZeldaUDPServer.I_GOT_JELLY + ":" + x_str + ":" + y_str + ":" + playerNum + ":" + jCountString;
 		String response = requestFromServer(request);
 	}
 	
