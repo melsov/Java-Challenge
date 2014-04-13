@@ -27,6 +27,21 @@ public class GUIPainter
 		g.drawChars(p1, 0, p1.length, GuiOrigin.x + 10, GuiOrigin.y + lineStartHeight);
 		g.drawChars(p2, 0, p2.length, GuiOrigin.x + GuiDimensions.x / 2 + 10, GuiOrigin.y + lineStartHeight);
 		
+		lineStartHeight = incrementLine(lineStartHeight);
+		
+		p1 = (playerStats.isPossessed ? "POSSESSED" : "NORMAL").toCharArray();
+		p2 = (otherStats.isPossessed ? "POSSESSED" : "NORMAL").toCharArray();
+		g.drawChars(p1, 0, p1.length, GuiOrigin.x + 10, GuiOrigin.y + lineStartHeight);
+		g.drawChars(p2, 0, p2.length, GuiOrigin.x + GuiDimensions.x / 2 + 10, GuiOrigin.y + lineStartHeight);
+		
+		lineStartHeight = incrementLine(lineStartHeight);
+		
+		p1 = (playerStats.isVictorious ? "WON" : "").toCharArray();
+		p2 = (otherStats.isVictorious ? "WON" : "").toCharArray();
+		g.drawChars(p1, 0, p1.length, GuiOrigin.x + 10, GuiOrigin.y + lineStartHeight);
+		g.drawChars(p2, 0, p2.length, GuiOrigin.x + GuiDimensions.x / 2 + 10, GuiOrigin.y + lineStartHeight);
+		
+		
 	}
 	
 	private static int incrementLine(int lineHeight) {
@@ -38,12 +53,12 @@ public class GUIPainter
 		g.fillRect(GuiOrigin.x, GuiOrigin.y, GuiDimensions.x, GuiDimensions.y);
 	}
 	
-	public static void PaintPausedScreen(Graphics cg, String text)
+	public static void PaintGameStateScreen(Graphics cg, String text)
 	{
 		Graphics2D g = (Graphics2D )cg;
 		g.setColor(Color.RED);
 		
-		char[] pausedchars = ("TIME OUT").toCharArray();
+		char[] pausedchars = (text).toCharArray();
 		g.drawChars(pausedchars, 0, pausedchars.length, SillyPanel.WIDTH_PIXELS/4 + 10, SillyPanel.HEIGHT_PIXELS/2  - 30);
 	
 	}

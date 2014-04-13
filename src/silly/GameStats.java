@@ -7,6 +7,7 @@ public class GameStats
 	public boolean isPossessed;
 	public int playerHealth = 10;
 	public Point2I coord = new Point2I(0,0);
+	public boolean isVictorious = false;
 	
 	public static String sep = ":";
 	
@@ -30,7 +31,8 @@ public class GameStats
 			GameStats.StringWithInt(jellyCount) + sep + 
 			String.valueOf(isPossessed) + sep +
 			GameStats.StringWithInt(playerHealth) + sep + 
-			coord.toString();
+			coord.toString() + sep +
+			String.valueOf(isVictorious);
 	}
 	
 	public static GameStats FromString(String gss)
@@ -47,6 +49,7 @@ public class GameStats
 		int xx = GameStats.IntFromString(gs[4]);
 		int yy = GameStats.IntFromString(gs[5]);
 		result.coord = new Point2I(xx,yy);
+		result.isVictorious = Boolean.parseBoolean(gs[6]);
 		return result;
 	}
 	

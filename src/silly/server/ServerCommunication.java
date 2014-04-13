@@ -1,12 +1,14 @@
 package silly.server;
 
 import silly.GameStats;
+import silly.Protagonist;
 
 public class ServerCommunication 
 {
 	public String header;
 	public int playerIndex = 0;
 	public GameStats gameStats;
+	
 	public static String seperatorHeader = ";";
 	public static String separator = ":";
 	
@@ -15,6 +17,14 @@ public class ServerCommunication
 		header = _header_;
 		gameStats = _gameStats_;
 		playerIndex = _playerIndex_;
+	}
+	
+	public static ServerCommunication ServerCommunicationForGameStateChange(Protagonist protagonist)
+	{
+		String header = ZeldaUDPServer.STATE_CHANGED_REQUEST;
+		GameStats gs = protagonist.myStats;
+		int pi = protagonist.iAmPlayerOne ? 0 : 1;
+		return new ServerCommunication(header, gs, pi);
 	}
 	
 	public String toString()

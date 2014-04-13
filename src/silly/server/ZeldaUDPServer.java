@@ -25,6 +25,7 @@ public class ZeldaUDPServer extends JFrame
 	public static String WHICH_PLAYER_REQUEST = "AMIPLAYERONEORTWO";
 	public static String I_LEFT_THE_GAME_REQUEST = "ILEFTTHEGAME";
 	public static String I_GOT_JELLY = "IGOTJELLY";
+	public static String STATE_CHANGED_REQUEST = "STATECHANGED";
 	public static String SAY_HI_REQUEST = "CLIENTLISTENERSAYSHI";
 	public static String INTRODUCTION_REQUEST = "PLAYERSENDSINTRODUCTION";
 
@@ -133,9 +134,18 @@ public class ZeldaUDPServer extends JFrame
 			handleClientGotJelly(msg_parts);
 		} else if (scomm_msg_header.equals(INTRODUCTION_REQUEST)) {
 			handlePlayerIntroduction(message, receivePacket);
+		}  else if (scomm_msg_header.equals(STATE_CHANGED_REQUEST)) {
+			passServerCommunicationToOther(message);
 		}
 		
 		return "WHAT?";
+	}
+	
+	private void passServerCommunicationToOther(String scomm_string)
+	{
+		ServerCommunication scomm = ServerCommunication.FromString(scomm_string);
+		PlayerInfo otherPInfo = getOtherPlayerInfoWith(scomm.playerIndex);
+		sendResponse(scomm.toString(), otherPInfo.contactInfo);
 	}
 	
 	private void handleClientSaysHi(DatagramPacket receivePacket)

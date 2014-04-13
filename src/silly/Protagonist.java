@@ -12,9 +12,7 @@ import silly.server.ZeldaUDPServer;
 
 public class Protagonist 
 {
-	private int x, y;
 	public ZeldaMap zeldaMap;
-//	public boolean isCurrentlyPossessed = false;
 	
 	private Image normalImage;
 	private Image possessedImage;
@@ -27,17 +25,22 @@ public class Protagonist
 	public GameStats myStats = new GameStats();
 	public GameStats otherStats = new GameStats();
 	
+	public static int JELLY_POSSESSED_THRESHOLD = 5;
+	
 	public int getX() {
-		return x;
+		return myStats.coord.x;
 	}
 	public void setX(int x_){
-		x = x_;
+		myStats.coord.x = x_;
 	}
 	public int getY() {
-		return y;
+		return myStats.coord.y;
 	}
 	public void setY(int y_) {
-		y = y_;
+		myStats.coord.y = y_;
+	}
+	public void setCoord(Point2I p) {
+		myStats.coord = p;
 	}
 	
 	public Image getImage() {
@@ -95,46 +98,90 @@ public class Protagonist
 		sendServerMyIntroduction();
 	}
 	
+	public void gameStateChanged(ServerCommunication scomm)
+	{
+		setGameStatsWithPlayerIndex(scomm);
+		
+	}
+	
+	private void setGameStatsWithPlayerIndex(ServerCommunication scomm) {
+		if (myPlayerIndex() == scomm.playerIndex)
+		{
+			myStats = scomm.gameStats;
+			return;
+		}
+		otherStats = scomm.gameStats;
+		
+	}
+	private int myPlayerIndex() {
+		return iAmPlayerOne ? 0 : 1;
+	}
 	
 	private void moveForward() {
-		int newX = x+1;
-		moveTo(newX, y);
+		moveTo(myStats.coord.plusX());
 	}
 	
 	private void moveBackward() {
-		int newX = x - 1;
-		moveTo(newX, y);
+		moveTo(myStats.coord.minusX());
 	}
 	
 	private void moveUp() {
-		int newY = y -1;
-		moveTo(x, newY);
+		moveTo(myStats.coord.minusY());
 	}
 	
 	private void moveDown() {
-		int newY = y + 1;
-		moveTo(x, newY);
+		moveTo(myStats.coord.plusY());
 	}
 	
-	private void moveTo(int xx, int yy) {
-		if (!checkWall(xx, yy))
+	private void moveTo(Point2I point) {
+		if (!checkWall(point))
 		{
 			try {
-				if (serverSaysItsOKToMove(xx,yy))
+				if (serverSaysItsOKToMove(point.x, point.y))
 				{
-					x = xx;
-					y = yy;
-
-					playSound("crunch.wav");
-					if (zeldaMap.jellyAt(x, y) != 0) {
+					myStats.coord = point;
+					
+					if (zeldaMap.jellyAt(point.x, point.y) != 0) {
 						myStats.jellyCount++;
-						tellServerThatIGotJelly(x,y);
-						zeldaMap.removeJelly(x,y);
+						tellServerThatIGotJelly(point.x, point.y);
+						zeldaMap.removeJelly(point.x, point.y);
+						playSound("tok.wav");
+						checkPossessed();
+					} else if (zeldaMap.doorAt(myStats.coord)) {
+						if (myStats.isPossessed) {
+							win();
+						}
+					} else {
+						playSound("crunch.wav");
 					}
 				}
 			} catch (IOException e) {
 				e.printStackTrace();
 			}
+		}
+	}
+	
+	private void win()
+	{
+		myStats.isVictorious = true;
+		sendServerUpdateWithMyStats();
+	}
+	
+	private void checkPossessed()
+	{
+		if (myStats.jellyCount == JELLY_POSSESSED_THRESHOLD)
+		{
+			myStats.isPossessed = true;
+			sendServerUpdateWithMyStats();
+		}
+	}
+	
+	private void sendServerUpdateWithMyStats()
+	{
+		ServerCommunication comm = ServerCommunication.ServerCommunicationForGameStateChange(this);
+		try {
+			requestFromServer(comm.toString());
+		} catch (IOException e) { e.printStackTrace();
 		}
 	}
 
@@ -182,8 +229,8 @@ public class Protagonist
 		return serverDelegate.requestFromServer(request);
 	}
 	
-	private boolean checkWall(int xx, int yy) {
-		return zeldaMap.coordIsSolid(xx, yy);
+	private boolean checkWall(Point2I point) {
+		return zeldaMap.coordIsSolid(point.x, point.y);
 	}
 	
 	public void keyPressed(KeyEvent e)

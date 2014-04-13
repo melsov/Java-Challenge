@@ -15,6 +15,8 @@ import javax.swing.ImageIcon;
 import javax.swing.JPanel;
 import javax.swing.Timer;
 
+import silly.server.ServerCommunication;
+
 public class SillyPanel extends JPanel implements ActionListener, IServerHandlerUpdate
 {
 	/**
@@ -42,6 +44,12 @@ public class SillyPanel extends JPanel implements ActionListener, IServerHandler
 	
 	private boolean otherHasArrived = false;
 	
+	private String gameStateString = "PAUSED";
+	private int gameState = 0;
+	
+	private String hostAddress = "localhost";
+	private String nameOfPlayer = "";
+	
 	public SillyPanel()
 	{
 		setupImageLookup();
@@ -55,16 +63,18 @@ public class SillyPanel extends JPanel implements ActionListener, IServerHandler
 	
 	private void doStartOfGameStuff()
 	{
-		String hostAddress = "";
+		gameState = 0;
+		gameStateString = "PAUSED";
 		//TODO: while they fail to give a ping-able server...
 		hostAddress = getServerNameFromUser();
-				
+		
+//		KeyListener[] kls = this.getKey
 		addKeyListener(new MyKeyAdapter());
 		setFocusable(true);
 		
 		setupCanvas();
 		drawTheWholeMap();
-		GUIPainter.PaintPausedScreen(cg, "WAITING FOR OPPONENT");
+		GUIPainter.PaintGameStateScreen(cg, "WAITING FOR OPPONENT");
 		
 		//CONSIDER: hostAddress is owned by two objects...
 		serverHandler = new ServerHandler(this, hostAddress);
@@ -116,7 +126,10 @@ public class SillyPanel extends JPanel implements ActionListener, IServerHandler
 	{
 		Frame f = new Frame();
 		f.setSize(400,500);
-		CustomDialog cd = new CustomDialog(f, "Tell me your name:", RandomNameGenerator.GetName());
+		if (nameOfPlayer == "") {
+			nameOfPlayer = RandomNameGenerator.GetName();
+		}
+		CustomDialog cd = new CustomDialog(f, "Tell me your name:", nameOfPlayer);
 		cd.pack();
 		cd.setVisible(true);
 		return cd.getAnswer();
@@ -126,7 +139,7 @@ public class SillyPanel extends JPanel implements ActionListener, IServerHandler
 	{
 		Frame f = new Frame();
 		f.setSize(400,500);
-		CustomDialog cd = new CustomDialog(f, "Tell me the server that you want to connect to:", "localhost");
+		CustomDialog cd = new CustomDialog(f, "Tell me the server that you want to connect to:", hostAddress);
 		cd.pack();
 		cd.setVisible(true);
 		return cd.getAnswer();
@@ -150,7 +163,27 @@ public class SillyPanel extends JPanel implements ActionListener, IServerHandler
 	private void changeStuffAboutTheGame()
 	{
 		//change stuff about the game
+		checkWonOrLost();
 		drawEverything();
+	}
+	
+	private void checkWonOrLost()
+	{
+		int winlosestate = 0;
+		String result_string = "";
+		if (protagonist.myStats.isVictorious) {
+			winlosestate = 1;
+			result_string = "YOU WON!";
+		} else if (protagonist.otherStats.isVictorious) {
+			winlosestate = 2;
+			result_string = "YOU LOST";
+		}
+		
+		if (winlosestate > 0) {
+			gameStateString = result_string;
+			paused = true;
+			gameState = winlosestate;
+		}
 	}
 	
 	private void drawEverything()
@@ -163,7 +196,8 @@ public class SillyPanel extends JPanel implements ActionListener, IServerHandler
 	
 	private void doPausedRelatedStuff()
 	{
-		GUIPainter.PaintPausedScreen(cg, "PAUSED");
+		
+		GUIPainter.PaintGameStateScreen(cg, gameStateString);
 	}
 	
 	private void updateMap(int x, int y, int tile_type)
@@ -229,6 +263,8 @@ public class SillyPanel extends JPanel implements ActionListener, IServerHandler
 		imageLookup.put(ZeldaMap.WALL, wallImage);
 		Image groundImage = imageWithName("ground.png");
 		imageLookup.put(ZeldaMap.GROUND, groundImage);
+		Image doorNorthImage = imageWithName("door_north.png");
+		imageLookup.put(ZeldaMap.DOOR_NORTH, doorNorthImage);
 		Image redJellyImage = imageWithName("jelly.png");
 		imageLookup.put(ZeldaMap.RED_JELLY, redJellyImage);
 	}
@@ -247,9 +283,8 @@ public class SillyPanel extends JPanel implements ActionListener, IServerHandler
 		protagonist.iAmPlayerOne = serverHandler.playerNumber == 0 ? true : false;
 		int playerNum = protagonist.iAmPlayerOne ? 0 : 1;
 		Point2I spawnPoint = zeldaMap.spawnPointForPlayer(playerNum);
-		protagonist.setX(spawnPoint.x);
-		protagonist.setY(spawnPoint.y);
-		
+		protagonist.setCoord(spawnPoint); 
+
 		protagonist.setOtherImages( imageWithName("normalLinkP2.png"), imageWithName("demonLinkP2.png"));
 		
 		if (otherHasArrived) {
@@ -271,8 +306,23 @@ public class SillyPanel extends JPanel implements ActionListener, IServerHandler
 
         public void keyPressed(KeyEvent e) {
         	protagonist.keyPressed(e);
+        	
+        	if (gameState > 0) {
+        		int restartKey = KeyEvent.VK_R;
+        		int key = e.getKeyCode();
+        		if (key == restartKey)
+        		{
+        			restart();
+        		}
+        	}
         }
 
+	}
+	
+	private void restart()
+	{
+		
+		doStartOfGameStuff();
 	}
 
 	@Override
@@ -289,8 +339,13 @@ public class SillyPanel extends JPanel implements ActionListener, IServerHandler
 
 	@Override
 	public void updateOtherCoord(Point2I point) {
-		// TODO Auto-generated method stub
 		protagonist.otherStats.coord = point;
+	}
+
+	@Override
+	public void pushStateChanged(ServerCommunication scomm) {
+		protagonist.gameStateChanged(scomm);
+		
 	}
 
 

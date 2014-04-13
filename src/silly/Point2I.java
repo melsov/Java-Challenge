@@ -29,4 +29,20 @@ public class Point2I
 		int yy = Integer.parseInt(xy[1]);
 		return new Point2I(xx,yy);
 	}
+	
+	public Point2I plusY() {
+		return new Point2I(x, y + 1);
+	}
+	
+	public Point2I minusY() {
+		return new Point2I(x, y - 1);
+	}
+	
+	public Point2I plusX() {
+		return new Point2I(x + 1, y);
+	}
+	
+	public Point2I minusX() {
+		return new Point2I(x - 1, y);
+	}
 }

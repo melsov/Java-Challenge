@@ -8,10 +8,12 @@ public class ZeldaMap
 	private int [][] tiles = new int[COLUMNS][ROWS];
 	private int [][] jellyMap = new int[COLUMNS][ROWS];
 	
-	public static final int GROUND = 432;
 	public static final int WALL = 431;
+	public static final int GROUND = 432;
+	public static final int DOOR_NORTH = 433;
 	
 	public static final int RED_JELLY = 243;
+	private int jellyCount = 0;
 	
 	private Point2I spawnPlayerOnePoint = new Point2I(5,4);
 	private Point2I spawnPlayerTwoPoint = new Point2I(12,15);
@@ -29,7 +31,10 @@ public class ZeldaMap
 			int[] tile_column = tiles[i];
 			for(int j = 0; j < tile_column.length; ++j)
 			{
-				if (i == 0 || j == 0 || i == COLUMNS - 1 || j == ROWS - 1)
+				if (i == COLUMNS/2 && j == 0)
+				{
+					tile_column[j] = DOOR_NORTH;
+				} else if (i == 0 || j == 0 || i == COLUMNS - 1 || j == ROWS - 1)
 				{
 					tile_column[j] = WALL;
 				} else {
@@ -57,6 +62,7 @@ public class ZeldaMap
 					if ((int)Math.sqrt((distC*distC + distR*distR)) == halfR - 3)
 					{
 						jelly_column[j] = RED_JELLY;
+						jellyCount++;
 					}
 				}
 			}
@@ -77,15 +83,25 @@ public class ZeldaMap
 	{
 		tiles[x][y] = tile_type;
 	}
-	
+	public boolean doorAt(Point2I p) {
+		return doorAt(p.x, p.y);
+	}
+	public boolean doorAt(int x, int y) {
+		return tiles[x][y] == DOOR_NORTH;
+	}
 	public int jellyAt(int x, int y) {
 		return jellyMap[x][y];
 	}
 	public void removeJelly(int x, int y) {
 		setJelly(x,y,0);
+		jellyCount--;
 	}
-	public void setJelly(int x, int y, int jelly_type) {
+	private void setJelly(int x, int y, int jelly_type) {
 		jellyMap[x][y] = jelly_type;
+	}
+	
+	public int getJellyCount() {
+		return jellyCount;
 	}
 	
 	public Point2I spawnPointForPlayer(int playerNum) {
