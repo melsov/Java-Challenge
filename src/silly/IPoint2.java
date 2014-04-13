@@ -13,4 +13,8 @@ public class IPoint2
 	public static IPoint2 Add(IPoint2 a, IPoint2 b) {
 		return new IPoint2(a.x + b.x, a.y + b.y);
 	}
+	
+	public boolean equal(IPoint2 other) {
+		return this.x == other.x && this.y == other.y;
+	}
 }

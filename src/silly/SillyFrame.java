@@ -43,12 +43,17 @@ import javax.swing.JFrame;
 
 public class SillyFrame extends JFrame
 {
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = 1L;
+
 	public SillyFrame()
 	{
 		add(new SillyPanel());
 		setTitle("Silly Window");
 		setDefaultCloseOperation(EXIT_ON_CLOSE);
-        setSize(SillyPanel.WIDTH_PIXELS, SillyPanel.HEIGHT_PIXELS + 40);
+        setSize(SillyPanel.WIDTH_PIXELS, SillyPanel.HEIGHT_PIXELS + SillyPanel.GUI_FOOTER_HEIGHT);
         setLocationRelativeTo(null);
         setVisible(true);
         setResizable(true);

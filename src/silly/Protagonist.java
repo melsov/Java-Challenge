@@ -3,13 +3,11 @@ package silly;
 import java.awt.Image;
 import java.awt.event.KeyEvent;
 import java.io.IOException;
-import java.net.DatagramPacket;
-import java.net.DatagramSocket;
-import java.net.InetAddress;
-
 import javax.sound.sampled.AudioInputStream;
 import javax.sound.sampled.AudioSystem;
 import javax.sound.sampled.Clip;
+
+import silly.server.ZeldaUDPServer;
 
 public class Protagonist 
 {
@@ -24,6 +22,7 @@ public class Protagonist
 	
 	private IServerRequest serverDelegate;
 	
+	public int jellyCount = 0;
 	public boolean iAmPlayerOne;
 	
 	public int getX() {
@@ -63,7 +62,6 @@ public class Protagonist
 			return normalImage;
 		}
 	}
-
 	
 	public void setOtherImages(Image normal, Image demon) {
 		normalImageP2 = normal;
@@ -119,6 +117,10 @@ public class Protagonist
 					y = yy;
 
 					playSound("crunch.wav");
+					if (zeldaMap.jellyAt(x, y) != 0) {
+						tellServerThatIGotJelly(x,y);
+						zeldaMap.removeJelly(x,y);
+					}
 				}
 			} catch (IOException e) {
 				e.printStackTrace();
@@ -138,6 +140,16 @@ public class Protagonist
 		if (response.trim().equals("YES"))
 			return true;
 		return false;
+	}
+	
+	private void tellServerThatIGotJelly(int xx, int yy) throws IOException 
+	{
+		String x_str = String.valueOf(xx);
+		String y_str = String.valueOf(yy);
+		String playerNum = String.valueOf(iAmPlayerOne ? 0 : 1);
+		  
+		String request = ZeldaUDPServer.I_GOT_JELLY + ":" + x_str + ":" + y_str + ":" + playerNum;
+		String response = requestFromServer(request);
 	}
 	
 	private void tellServerILeft() throws IOException

@@ -43,7 +43,11 @@ class CustomDialog extends JDialog
                    implements ActionListener,
                               PropertyChangeListener 
 {
-    private String typedText = null;
+    /**
+	 * 
+	 */
+	private static final long serialVersionUID = 1L;
+	private String typedText = null;
     private JTextField textField;
     private JOptionPane optionPane;
  

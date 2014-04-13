@@ -8,15 +8,20 @@ import java.net.DatagramSocket;
 import java.net.InetAddress;
 import java.net.SocketException;
 
+import silly.server.ZeldaUDPServer;
+
 public class ServerHandler implements Runnable
 {
 	public IPoint2 otherPlayerCoord = new IPoint2(0,0);
+	public int otherJellyCount = 0;
 	DatagramSocket listenerSocket = null;
 	public int playerNumber = -1;
 	private String serverIP = ""; // "localhost";
+	private IServerHandlerUpdate updateDelegate;
 	
-	public ServerHandler(String serverIP_)
+	public ServerHandler(IServerHandlerUpdate updateDelegate_, String serverIP_)
 	{
+		updateDelegate = updateDelegate_;
 		serverIP = serverIP_;
 		try {
 			listenerSocket = new DatagramSocket();
@@ -113,7 +118,9 @@ public class ServerHandler implements Runnable
 		
 		if (msg_header.equals(ZeldaUDPServer.OTHER_MOVED)) {
 			handleOtherMoved(msg_parts);
-		}
+		} else if (msg_header.equals(ZeldaUDPServer.OTHER_GOT_JELLY)) {
+			handleOtherGotJelly(msg_parts);
+		} 
 	}
 	
 	private void handleOtherMoved(String[] msg_parts)
@@ -131,5 +138,26 @@ public class ServerHandler implements Runnable
 			out.println("Exception...");
 		}
 		otherPlayerCoord = new IPoint2(x,y);
+	}
+	
+	private void handleOtherGotJelly(String[] msg_parts)
+	{
+		String xx = msg_parts[1];
+		String yy = msg_parts[2];
+		String jjcount = msg_parts[3];
+		
+		int x = -1;
+		int y = -1;
+		int jcount = -1;
+		
+		try {
+			x = Integer.parseInt(xx.trim());
+			y = Integer.parseInt(yy.trim());
+			jcount = Integer.parseInt(jjcount.trim());
+		} catch(java.lang.NumberFormatException e) {
+			out.println("Exception...");
+		}
+		otherJellyCount = jcount;
+		updateDelegate.otherGotJellyAt(new IPoint2(x,y));
 	}
 }

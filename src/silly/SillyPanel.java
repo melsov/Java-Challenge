@@ -1,7 +1,5 @@
 package silly;
 
-import static java.lang.System.out;
-
 import java.awt.Color;
 import java.awt.Frame;
 import java.awt.Graphics;
@@ -11,22 +9,21 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
-import java.io.IOException;
-import java.net.DatagramPacket;
-import java.net.DatagramSocket;
-import java.net.InetAddress;
-import java.net.SocketException;
 import java.util.HashMap;
 
 import javax.swing.ImageIcon;
-import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.Timer;
 
-public class SillyPanel extends JPanel implements ActionListener
+public class SillyPanel extends JPanel implements ActionListener, IServerHandlerUpdate
 {
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = 1L;
 	public static final int WIDTH_PIXELS = 700;
 	public static final int HEIGHT_PIXELS = 700;
+	public static final int GUI_FOOTER_HEIGHT = 100;
 	
 	private static int TILE_WIDTH_PIXELS = WIDTH_PIXELS/ZeldaMap.COLUMNS;
 	private static int TILE_HEIGHT_PIXELS = HEIGHT_PIXELS/ZeldaMap.ROWS;
@@ -61,9 +58,8 @@ public class SillyPanel extends JPanel implements ActionListener
 		setupCanvas();
 		drawTheWholeMap();
 		
-		serverHandler = new ServerHandler(hostAddress);
-		
-		
+		//CONSIDER: hostAddress is owned by two objects...
+		serverHandler = new ServerHandler(this, hostAddress);
 		setupProtagonist(new ProtagonistServerDelegate(hostAddress));
 		
 		Thread t = new Thread(serverHandler);
@@ -100,6 +96,7 @@ public class SillyPanel extends JPanel implements ActionListener
 		drawTheWholeMap();
 		drawOther();
 		drawProtagonist();
+		GUIPainter.paintGameInfo(cg, 12, 12);
 		
 	}
 	
@@ -113,17 +110,17 @@ public class SillyPanel extends JPanel implements ActionListener
 	{
 		if (canvas == null)
 		{
-			canvas = createImage(WIDTH_PIXELS,HEIGHT_PIXELS);
+			canvas = createImage(WIDTH_PIXELS,HEIGHT_PIXELS + GUI_FOOTER_HEIGHT) ;
 			cg = canvas.getGraphics();
 		}
 		cg.setColor(Color.white);
-		cg.fillRect(0, 0, WIDTH_PIXELS, HEIGHT_PIXELS);
+		cg.fillRect(0, 0, WIDTH_PIXELS, HEIGHT_PIXELS + GUI_FOOTER_HEIGHT);
 	}
 	
 	public void paint(Graphics g)
     {
 		Graphics2D g2 = (Graphics2D) g;
-		g2.drawImage(canvas, 0,0,WIDTH_PIXELS, HEIGHT_PIXELS, null);
+		g2.drawImage(canvas, 0,0,WIDTH_PIXELS, HEIGHT_PIXELS + GUI_FOOTER_HEIGHT, null);
     }
 	
 	private void drawTheWholeMap()
@@ -142,6 +139,10 @@ public class SillyPanel extends JPanel implements ActionListener
 		int tile_type = zeldaMap.tileAt(x ,y );
 		Image tile_image = imageLookup.get(tile_type);
 		cg.drawImage(tile_image, x * TILE_WIDTH_PIXELS, y * TILE_HEIGHT_PIXELS, TILE_WIDTH_PIXELS, TILE_HEIGHT_PIXELS, null);
+		int jelly_type = zeldaMap.jellyAt(x,y);
+		if (jelly_type != 0) {
+			cg.drawImage(imageLookup.get(jelly_type),  x * TILE_WIDTH_PIXELS, y * TILE_HEIGHT_PIXELS, TILE_WIDTH_PIXELS, TILE_HEIGHT_PIXELS, null);
+		}
 	}
 	
 	private void drawProtagonist()
@@ -162,6 +163,8 @@ public class SillyPanel extends JPanel implements ActionListener
 		imageLookup.put(ZeldaMap.WALL, wallImage);
 		Image groundImage = imageWithName("ground.png");
 		imageLookup.put(ZeldaMap.GROUND, groundImage);
+		Image redJellyImage = imageWithName("jelly.png");
+		imageLookup.put(ZeldaMap.RED_JELLY, redJellyImage);
 	}
 
 	private void setupProtagonist(IServerRequest protagServerDelegate)
@@ -198,6 +201,13 @@ public class SillyPanel extends JPanel implements ActionListener
         	protagonist.keyPressed(e);
         }
 
+	}
+
+	@Override
+	public void otherGotJellyAt(IPoint2 point) {
+		// TODO Auto-generated method stub
+		zeldaMap.removeJelly(point.x,point.y);
+		
 	}
 	
 

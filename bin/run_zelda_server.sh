@@ -6,7 +6,7 @@ fi
 OPT=$1
 BINARY_PATH=${PWD}
 JPATH="/System/Library/Java/JavaVirtualMachines/1.6.0.jdk/Contents/Home/bin"
-ZSERVER_PATH="$BINARY_PATH/silly/ZeldaUDPServer.class"
+ZSERVER_PATH="$BINARY_PATH/silly/server/ZeldaUDPServer.class"
 if [ ! -f "$ZSERVER_PATH" ]; then
     echo "find zelda server binary failed"
     echo "this script wants to be in the bin directory. \n looks for a folder named 'silly' and a file named 'ZeldaUDPServer.class'"
@@ -22,7 +22,7 @@ fi
 JPATH="$JPATH/java"
 echo "$OPT"
 if [ "$OPT" -ne 1 ]; then
-    $JPATH -Dfile.encoding=MacRoman -classpath $BINARY_PATH  silly.ZeldaUDPServer &
+    $JPATH -Dfile.encoding=MacRoman -classpath $BINARY_PATH  silly.server.ZeldaUDPServer &
     read -t1 -n1 -r -p "waiting one seconds..." key
 fi
 if [ "$OPT" -gt 0 ]; then
@@ -34,3 +34,4 @@ if [ "$OPT" -eq 3 ]; then
 fi
 
 echo "done"
+echo "NOTE: the path to the binary can't have spaces in it. \nThis is the path that was used: \n $BINARY_PATH"

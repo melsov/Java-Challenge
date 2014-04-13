@@ -1,4 +1,4 @@
-package silly;
+package silly.server;
 
 import java.io.*;
 
@@ -7,19 +7,30 @@ import java.net.*;
 
 import javax.swing.*;
 
-class ZeldaUDPServer extends JFrame
+import silly.IPoint2;
+import silly.PlayerContactInfo;
+import silly.PlayerInfo;
+
+public class ZeldaUDPServer extends JFrame
 {
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = 1L;
 	private JTextArea textArea;
 	private JScrollPane jScrollPane1;
 	
 	public static String MOVE_REQUEST = "CANIMOVETO"; 
 	public static String WHICH_PLAYER_REQUEST = "AMIPLAYERONEORTWO";
 	public static String I_LEFT_THE_GAME_REQUEST = "ILEFTTHEGAME";
-	public static String OTHER_MOVED = "OTHERMOVED";
+	public static String I_GOT_JELLY = "IGOTJELLY";
 	public static String SAY_HI_REQUEST = "CLIENTLISTENERSAYSHI";
 	
+	public static String OTHER_MOVED = "OTHERMOVED";
+	public static String OTHER_GOT_JELLY = "OTHERGOTJELLY";
+	
 	private int playerCount = 0;
-	private PlayerContactInfo[] playerRolodex = new PlayerContactInfo[2];
+	private PlayerInfo[] playerRolodex = new PlayerInfo[2];
 	
 	private DatagramSocket serverSocket;
 	
@@ -50,9 +61,6 @@ class ZeldaUDPServer extends JFrame
         
         setVisible(true);
         setResizable(true);
-        
-       
-
 	}
 	
 	public void writeToPanel(String ss)
@@ -130,6 +138,8 @@ class ZeldaUDPServer extends JFrame
 			handleILeftTheGame();
 		}else if (msg_header.equals(SAY_HI_REQUEST)) {
 			return handleClientSaysHi(receivePacket);
+		}else if (msg_header.equals(I_GOT_JELLY)) {
+			handleClientGotJelly(msg_parts);
 		}
 		
 		return "WHAT?";
@@ -145,11 +155,11 @@ class ZeldaUDPServer extends JFrame
 		if (playerCount == 0)
 		{
 			response  = "ONE";
-			playerRolodex[0] = pci;
+			playerRolodex[0] = new PlayerInfo(pci);
 			playerCount++;
 		} else if (playerCount == 1) {
 			response = "TWO";
-			playerRolodex[1] = pci;
+			playerRolodex[1] = new PlayerInfo(pci);
 			playerCount++;
 		} else {
 			response = "NEITHER";
@@ -159,6 +169,8 @@ class ZeldaUDPServer extends JFrame
 	
 	private String handleCanIMove(String[] msg_parts)
 	{
+		//TODO: replace these communications with a custom
+		// serializable object
 		String xx = msg_parts[1];
 		String yy = msg_parts[2];
 		String playerIndex_string = msg_parts[3];
@@ -177,19 +189,52 @@ class ZeldaUDPServer extends JFrame
 			return "YES"; 
 		}
 		
-		if (mapOccupiedAt(x, y)) {
-			return "NO";
-		}
 		//tell other client that other player moved.
 		if (playerIndex == -1) {
 			System.out.println("Big problem: no player index in can I move message. exiting. playerIndex string was: " + playerIndex_string);
 			System.exit(1);
 		}
-		PlayerContactInfo other_pci = playerRolodex[playerIndex == 1 ? 0 : 1];
+		PlayerInfo otherPlayerInfo  = playerRolodex[playerIndex == 1 ? 0 : 1];
+
+		if (mapOccupiedAt(x, y, otherPlayerInfo.coord)) {
+			return "NO";
+		}
+		PlayerInfo thisPlayerInfo = playerRolodex[playerIndex];
+		thisPlayerInfo.coord = new IPoint2(x,y);
+		
 		String response = ZeldaUDPServer.OTHER_MOVED + ":" + xx + ":" + yy;
-		sendResponse(response, other_pci);
+		sendResponse(response, otherPlayerInfo.contactInfo);
 		
 		return "YES";
+	}
+	
+	private void handleClientGotJelly(String[] msg_parts)
+	{
+		String xx = msg_parts[1];
+		String yy = msg_parts[2];
+		String playerIndex_string = msg_parts[3];
+
+		int playerIndex = -1;
+		
+		try {
+			playerIndex = Integer.parseInt(playerIndex_string.trim());
+		} catch(java.lang.NumberFormatException e) {
+			out.println("Exception...");
+		}
+		
+		//tell other client that other player moved.
+		if (playerIndex == -1) {
+			System.out.println("Big problem: no player index in can I move message. exiting. playerIndex string was: " + playerIndex_string);
+			System.exit(1);
+		}
+		PlayerInfo otherPlayerInfo  = playerRolodex[playerIndex == 1 ? 0 : 1];
+
+		PlayerInfo thisPlayerInfo = playerRolodex[playerIndex];
+		thisPlayerInfo.jellyCount++;
+		
+		String response = ZeldaUDPServer.OTHER_GOT_JELLY + ":" + xx + ":" + yy + ":" + thisPlayerInfo.jellyCount;
+		sendResponse(response, otherPlayerInfo.contactInfo);
+		
 	}
 	
 	private String handleWhichPlayerAmI()
@@ -209,9 +254,9 @@ class ZeldaUDPServer extends JFrame
 		playerCount--;
 	}
 	
-	private boolean mapOccupiedAt(int xx, int yy)
+	private boolean mapOccupiedAt(int xx, int yy, IPoint2 otherCoord)
 	{
-		return false; //method stub
+		return otherCoord.equal(new IPoint2(xx,yy));
 	}
 	
 }
