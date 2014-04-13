@@ -38,6 +38,9 @@ public class SillyPanel extends JPanel implements ActionListener, IServerHandler
 	private ServerHandler serverHandler;
 	
 	private Timer timer;
+	private boolean paused = true;
+	
+	private boolean otherHasArrived = false;
 	
 	public SillyPanel()
 	{
@@ -61,6 +64,7 @@ public class SillyPanel extends JPanel implements ActionListener, IServerHandler
 		
 		setupCanvas();
 		drawTheWholeMap();
+		GUIPainter.PaintPausedScreen(cg, "WAITING FOR OPPONENT");
 		
 		//CONSIDER: hostAddress is owned by two objects...
 		serverHandler = new ServerHandler(this, hostAddress);
@@ -69,29 +73,50 @@ public class SillyPanel extends JPanel implements ActionListener, IServerHandler
 		Thread t = new Thread(serverHandler);
 		t.start();
 		
-		//MAKE THE GAME START
+		//START LATER
 		timer = new Timer(12, this);
-		timer.start();		
+	}
+	
+	private void startGame()
+	{
+		if (paused)
+		{
+			paused = false;
+			timer.start();
+		}
+	}
+	
+	private void pauseGame()
+	{
+		if (!paused)
+		{
+			paused = true;
+		}
 	}
 
 	@Override
 	public void otherHasArrived() {
-		protagonist.otherHasArrived();
+		otherHasArrived = true;
+		if (protagonist != null) {
+			protagonist.otherHasArrived();
+		}
 	}
 	
 	public GameStats playerGameStats() {
 		return protagonist.myStats;
 	}
 	
-	public void introduceOther(GameStats otherStats) {
-		
+	public void introduceOther(GameStats otherStats) 
+	{
+		protagonist.otherStats = otherStats;
+		startGame();
 	}
 	
 	private String getGameHandleFromUser()
 	{
 		Frame f = new Frame();
 		f.setSize(400,500);
-		CustomDialog cd = new CustomDialog(f,  "Tell me your name:",RandomNameGenerator.GetName() );
+		CustomDialog cd = new CustomDialog(f, "Tell me your name:", RandomNameGenerator.GetName());
 		cd.pack();
 		cd.setVisible(true);
 		return cd.getAnswer();
@@ -101,7 +126,7 @@ public class SillyPanel extends JPanel implements ActionListener, IServerHandler
 	{
 		Frame f = new Frame();
 		f.setSize(400,500);
-		CustomDialog cd = new CustomDialog(f,  "Tell me the server that you want to connect to:", "localhost" );
+		CustomDialog cd = new CustomDialog(f, "Tell me the server that you want to connect to:", "localhost");
 		cd.pack();
 		cd.setVisible(true);
 		return cd.getAnswer();
@@ -113,18 +138,32 @@ public class SillyPanel extends JPanel implements ActionListener, IServerHandler
 	@Override
 	public void actionPerformed(ActionEvent the_event) 
 	{
-		changeStuffAboutTheGame();
+		if (!paused)
+		{
+			changeStuffAboutTheGame();
+		} else {
+			doPausedRelatedStuff();
+		}
 		repaint(); //causes the 'paint' method to be called again.
 	}
 	
 	private void changeStuffAboutTheGame()
 	{
 		//change stuff about the game
+		drawEverything();
+	}
+	
+	private void drawEverything()
+	{
 		drawTheWholeMap();
 		drawOther();
 		drawProtagonist();
-		GUIPainter.paintGameInfo(cg, protagonist.myStats, protagonist.otherStats);
-		
+		GUIPainter.PaintGameInfo(cg, protagonist.myStats, protagonist.otherStats);
+	}
+	
+	private void doPausedRelatedStuff()
+	{
+		GUIPainter.PaintPausedScreen(cg, "PAUSED");
 	}
 	
 	private void updateMap(int x, int y, int tile_type)
@@ -213,6 +252,9 @@ public class SillyPanel extends JPanel implements ActionListener, IServerHandler
 		
 		protagonist.setOtherImages( imageWithName("normalLinkP2.png"), imageWithName("demonLinkP2.png"));
 		
+		if (otherHasArrived) {
+			protagonist.otherHasArrived();
+		}
 	}
 	
 	private Image imageWithName(String imageName) 

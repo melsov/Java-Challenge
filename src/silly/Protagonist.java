@@ -7,6 +7,7 @@ import javax.sound.sampled.AudioInputStream;
 import javax.sound.sampled.AudioSystem;
 import javax.sound.sampled.Clip;
 
+import silly.server.ServerCommunication;
 import silly.server.ZeldaUDPServer;
 
 public class Protagonist 
@@ -89,9 +90,11 @@ public class Protagonist
     	});
 	}
 	
-	public void otherHasArrived() {
-		//extend introduction to other
+	public void otherHasArrived() 
+	{
+		sendServerMyIntroduction();
 	}
+	
 	
 	private void moveForward() {
 		int newX = x+1;
@@ -147,6 +150,16 @@ public class Protagonist
 		if (response.trim().equals("YES"))
 			return true;
 		return false;
+	}
+
+	private void sendServerMyIntroduction()
+	{
+		//extend introduction to other
+		ServerCommunication comm = new ServerCommunication(ZeldaUDPServer.INTRODUCTION_REQUEST, this.myStats, iAmPlayerOne ? 0 : 1);
+		try {
+			requestFromServer(comm.toString());
+		} catch (IOException e) { e.printStackTrace();
+		}
 	}
 	
 	private void tellServerThatIGotJelly(int xx, int yy) throws IOException 

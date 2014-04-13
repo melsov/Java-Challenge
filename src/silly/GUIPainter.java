@@ -10,7 +10,7 @@ public class GUIPainter
 	private static Point2I GuiDimensions = new Point2I(SillyPanel.WIDTH_PIXELS, SillyPanel.GUI_FOOTER_HEIGHT);
 	private static final int LINE_HEIGHT_PIXELS = 20;
 	
-	public static void paintGameInfo(Graphics cg, GameStats playerStats, GameStats otherStats)
+	public static void PaintGameInfo(Graphics cg, GameStats playerStats, GameStats otherStats)
 	{
 		Graphics2D g = (Graphics2D )cg;
 		
@@ -36,5 +36,15 @@ public class GUIPainter
 	private static void clearGuiArea(Graphics2D g)
 	{
 		g.fillRect(GuiOrigin.x, GuiOrigin.y, GuiDimensions.x, GuiDimensions.y);
+	}
+	
+	public static void PaintPausedScreen(Graphics cg, String text)
+	{
+		Graphics2D g = (Graphics2D )cg;
+		g.setColor(Color.RED);
+		
+		char[] pausedchars = ("TIME OUT").toCharArray();
+		g.drawChars(pausedchars, 0, pausedchars.length, SillyPanel.WIDTH_PIXELS/4 + 10, SillyPanel.HEIGHT_PIXELS/2  - 30);
+	
 	}
 }

@@ -8,6 +8,7 @@ import java.net.DatagramSocket;
 import java.net.InetAddress;
 import java.net.SocketException;
 
+import silly.server.ServerCommunication;
 import silly.server.ZeldaUDPServer;
 
 public class ServerHandler implements Runnable
@@ -48,8 +49,9 @@ public class ServerHandler implements Runnable
 		if (response.equals("ONE"))
 		{
 			playerNumber = 0;
-		} else if (response.equals("TWO")) {
+		} else if (response.equals(ZeldaUDPServer.OTHER_ARRIVED)) {
 			playerNumber = 1;
+			handleOtherArrived();
 		}
 		else {
 			System.out.println("Say response: " + response + "\n exiting");
@@ -102,23 +104,40 @@ public class ServerHandler implements Runnable
 				e.printStackTrace();
 			}
 			String sentence = new String( receivePacket.getData());
-			handleClientQuery(sentence);
+			handleServerMessage(sentence);
 
 		}
 		
 	}
 	
-	private void handleClientQuery(String message)
+	private void handleServerMessage(String message)
 	{
-		System.out.println("Got msg: " + message);
 		String[] msg_parts = message.split(":");
 		String msg_header = msg_parts[0].trim();
+		
+		String[] comm_msg_parts = message.split(ServerCommunication.seperatorHeader);
+		String comm_msg_header = comm_msg_parts[0];
 		
 		if (msg_header.equals(ZeldaUDPServer.OTHER_MOVED)) {
 			handleOtherMoved(msg_parts);
 		} else if (msg_header.equals(ZeldaUDPServer.OTHER_GOT_JELLY)) {
 			handleOtherGotJelly(msg_parts);
-		} 
+		} else if (msg_header.equals(ZeldaUDPServer.OTHER_ARRIVED)) {
+			handleOtherArrived();
+		} else if (comm_msg_header.equals(ZeldaUDPServer.OTHER_EXTENDS_INTRO)) {
+			handleOtherExtendsIntro(message);
+		}
+	}
+	
+	private void handleOtherArrived()
+	{
+		updateDelegate.otherHasArrived();
+	}
+	
+	private void handleOtherExtendsIntro(String message)
+	{
+		ServerCommunication comm = ServerCommunication.FromString(message);
+		updateDelegate.introduceOther(comm.gameStats);
 	}
 	
 	private void handleOtherMoved(String[] msg_parts)

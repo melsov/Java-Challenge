@@ -7,6 +7,7 @@ import java.net.*;
 
 import javax.swing.*;
 
+import silly.GameStats;
 import silly.Point2I;
 import silly.PlayerContactInfo;
 import silly.PlayerInfo;
@@ -25,10 +26,13 @@ public class ZeldaUDPServer extends JFrame
 	public static String I_LEFT_THE_GAME_REQUEST = "ILEFTTHEGAME";
 	public static String I_GOT_JELLY = "IGOTJELLY";
 	public static String SAY_HI_REQUEST = "CLIENTLISTENERSAYSHI";
+	public static String INTRODUCTION_REQUEST = "PLAYERSENDSINTRODUCTION";
 
 	public static String OTHER_ARRIVED = "OTHERARRIVED";
+	public static String OTHER_EXTENDS_INTRO = "OTHEREXTENDSINTRO";
 	public static String OTHER_MOVED = "OTHERMOVED";
 	public static String OTHER_GOT_JELLY = "OTHERGOTJELLY";
+	public static String TIME_TO_START_THE_GAME = "STARTTHEGAME";
 	
 	private int playerCount = 0;
 	private PlayerInfo[] playerRolodex = new PlayerInfo[2];
@@ -86,24 +90,8 @@ public class ZeldaUDPServer extends JFrame
 			zeldaserver.writeToPanel("Received: " + sentence + "\n");
 			
 			//SEND
-//			InetAddress IPAddress = receivePacket.getAddress();
-//			int port = receivePacket.getPort();
 			String response = zeldaserver.handleClientQuery(sentence, receivePacket);
 			zeldaserver.sendResponse(response, receivePacket.getAddress(), receivePacket.getPort());
-//			zeldaserver.writeToPanel("Responded: to IP " + IPAddress.toString() + " port: " + port + " : " + response + "\n");
-//			sendData = response.getBytes();
-//			DatagramPacket sendPacket =
-//				new DatagramPacket(sendData, sendData.length, IPAddress, port);
-//			serverSocket.send(sendPacket);
-			
-//			if (zeldaserver.playerRolodex[0] != null)
-//			{
-//				//send test msg;
-//				PlayerContactInfo pci = zeldaserver.playerRolodex[0];
-//				sendData = "hi from server".getBytes();
-//				DatagramPacket testPacket = new DatagramPacket(sendData, sendData.length, pci.IPAddress, pci.port);
-//				serverSocket.send(testPacket);
-//			}
        }
 	}
 	
@@ -128,8 +116,10 @@ public class ZeldaUDPServer extends JFrame
 	private String handleClientQuery(String message, DatagramPacket receivePacket)
 	{
 		String[] msg_parts = message.split(":");
+		String[] scomm_msg_parts = message.split(ServerCommunication.seperatorHeader);
 		
 		String msg_header = msg_parts[0].trim();
+		String scomm_msg_header = scomm_msg_parts[0].trim();
 		
 		if (msg_header.equals(MOVE_REQUEST)) {
 			return handleCanIMove(msg_parts);
@@ -138,35 +128,81 @@ public class ZeldaUDPServer extends JFrame
 		}else if (msg_header.equals(I_LEFT_THE_GAME_REQUEST)) {
 			handleILeftTheGame();
 		}else if (msg_header.equals(SAY_HI_REQUEST)) {
-			return handleClientSaysHi(receivePacket);
-		}else if (msg_header.equals(I_GOT_JELLY)) {
+			handleClientSaysHi(receivePacket);
+		} else if (msg_header.equals(I_GOT_JELLY)) {
 			handleClientGotJelly(msg_parts);
+		} else if (scomm_msg_header.equals(INTRODUCTION_REQUEST)) {
+			handlePlayerIntroduction(message, receivePacket);
 		}
 		
 		return "WHAT?";
 	}
 	
-	private String handleClientSaysHi(DatagramPacket receivePacket)
+	private void handleClientSaysHi(DatagramPacket receivePacket)
 	{
 		InetAddress IPAddress = receivePacket.getAddress();
 		int port = receivePacket.getPort();
 		PlayerContactInfo pci = new PlayerContactInfo(IPAddress, port);
 		
-		String response;
 		if (playerCount == 0)
 		{
-			response  = "ONE";
 			playerRolodex[0] = new PlayerInfo(pci);
 			playerCount++;
+			sendResponse("ONE", pci);
 		} else if (playerCount == 1) {
-			response = "TWO";
 			playerRolodex[1] = new PlayerInfo(pci);
 			playerCount++;
+			announcePlayerArrivals();
 		} else {
-			response = "NEITHER";
+			sendResponse("NEITHER", pci);
 		}
-		return response;
 	}
+	
+	private void handlePlayerIntroduction(String message, DatagramPacket receivePacket)
+	{
+		// NOTE: new server communication object streamlines otherwise clunky tasks
+		ServerCommunication communication = ServerCommunication.FromString(message.trim());
+		//RECORD STATS
+		PlayerInfo thisPInfo = getThisPlayerInfoWith(communication.playerIndex);
+		GameStats thisGameStats = communication.gameStats;
+		thisPInfo.gameStats = thisGameStats;
+		thisPInfo.ready = true;
+		
+		PlayerInfo otherPInfo = getOtherPlayerInfoWith(communication.playerIndex);
+		if (thisPInfo.ready && otherPInfo.ready){
+			introducePlayersToEachOther();
+		}
+	}
+	
+	private void announcePlayerArrivals()
+	{
+		for(int i = 0; i < playerRolodex.length; ++i)
+		{
+			PlayerInfo pinfo = getThisPlayerInfoWith(i);
+			sendResponse(OTHER_ARRIVED, pinfo.contactInfo);
+		}
+	}
+	
+	private void introducePlayersToEachOther()
+	{
+		//SEND STATS TO OTHER
+		for(int i = 0; i < playerRolodex.length; ++i)
+		{
+			PlayerInfo thisPInfo = getThisPlayerInfoWith(i);
+			PlayerInfo otherPInfo = getOtherPlayerInfoWith(i);
+			ServerCommunication toOtherCommunication = new ServerCommunication(OTHER_EXTENDS_INTRO, thisPInfo.gameStats, getOtherIndexWith(i));
+			sendResponse(toOtherCommunication.toString(), otherPInfo.contactInfo);
+		}
+	}
+	
+	private PlayerInfo getThisPlayerInfoWith(int thisPlayerIndex) {
+		return playerRolodex[thisPlayerIndex];
+	}
+	
+	private PlayerInfo getOtherPlayerInfoWith(int thisPlayerIndex) {
+		return playerRolodex[getOtherIndexWith(thisPlayerIndex)];
+	}
+	private int getOtherIndexWith(int thisPlayerIndex) { return thisPlayerIndex == 1 ? 0 : 1; }
 	
 	private String handleCanIMove(String[] msg_parts)
 	{
@@ -195,12 +231,12 @@ public class ZeldaUDPServer extends JFrame
 			System.out.println("Big problem: no player index in can I move message. exiting. playerIndex string was: " + playerIndex_string);
 			System.exit(1);
 		}
-		PlayerInfo otherPlayerInfo  = playerRolodex[playerIndex == 1 ? 0 : 1];
+		PlayerInfo otherPlayerInfo = getOtherPlayerInfoWith(playerIndex); 
 
 		if (mapOccupiedAt(x, y, otherPlayerInfo.gameStats.coord)) {
 			return "NO";
 		}
-		PlayerInfo thisPlayerInfo = playerRolodex[playerIndex];
+		PlayerInfo thisPlayerInfo = getThisPlayerInfoWith(playerIndex); 
 		thisPlayerInfo.gameStats.coord = new Point2I(x,y);
 		
 		//tell other client that other player moved.
