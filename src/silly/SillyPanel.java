@@ -51,8 +51,11 @@ public class SillyPanel extends JPanel implements ActionListener, IServerHandler
 	private String hostAddress = "localhost";
 	private String nameOfPlayer = "";
 	
-	public SillyPanel()
+	private boolean sameScreenMode;
+	
+	public SillyPanel(boolean wantSameScreenMode)
 	{
+		sameScreenMode = wantSameScreenMode;
 		setupImageLookup();
 	}
 	
@@ -64,28 +67,43 @@ public class SillyPanel extends JPanel implements ActionListener, IServerHandler
 	
 	private void doStartOfGameStuff()
 	{
+		D.print("Beginning of start of game stuff");
 		gameState = 0;
 		gameStateString = "PAUSED";
 		paused = true;
 		otherHasArrived = false;
 		zeldaMap = new ZeldaMap();
+		endThreads();
+		//CONSIDER: hostAddress is owned by two objects...
+		protagonist = null;
+		serverHandler = null;
 		//TODO: while they fail to give a ping-able server...
-		hostAddress = getServerNameFromUser();
 		
-		KeyListener[] kls = this.getKeyListeners();
-		if (kls.length == 0)
+		if (!sameScreenMode)
 		{
-			addKeyListener(new MyKeyAdapter());
-			setFocusable(true);
+			String problemConnectingString = "";
+			while(serverHandler == null || serverHandler.connectionStatus != HandlerConnectionStatus.ACCEPTED)
+			{
+				hostAddress = getServerNameFromUser(problemConnectingString);
+				serverHandler = new ServerHandler(this, hostAddress);
+				if (serverHandler.connectionStatus == HandlerConnectionStatus.REJECTED)
+					problemConnectingString = "THAT SERVER ALREADY HAS TWO PEOPLE. SORRY. ";
+				else if (serverHandler.connectionStatus == HandlerConnectionStatus.NO_CONNECTION)
+					problemConnectingString = "DIDN'T FIND THAT SERVER. SORRY. ";
+			}
+		}
+		else {
+			serverHandler = new ServerHandler(this, hostAddress);
+			if (serverHandler.connectionStatus != HandlerConnectionStatus.ACCEPTED) {
+				D.print("strange: tryinng to play with 3 or more people on the same computer?. I will die now.");
+				System.exit(2);
+			}
 		}
 		
 		setupCanvas();
 		drawTheWholeMap();
 		GUIPainter.PaintGameStateScreen(cg, "WAITING FOR OPPONENT");
 		
-		endThreads();
-		//CONSIDER: hostAddress is owned by two objects...
-		serverHandler = new ServerHandler(this, hostAddress);
 		setupProtagonist(new ProtagonistServerDelegate(hostAddress));
 		
 		Thread t = new Thread(serverHandler);
@@ -128,6 +146,9 @@ public class SillyPanel extends JPanel implements ActionListener, IServerHandler
 		otherHasArrived = true;
 		if (protagonist != null) {
 			protagonist.otherHasArrived();
+		} else {
+			D.print("protag is null yet other has arrived already?");
+//			System.exit(1);
 		}
 	}
 	
@@ -154,13 +175,16 @@ public class SillyPanel extends JPanel implements ActionListener, IServerHandler
 		return cd.getAnswer();
 	}
 	
-	private String getServerNameFromUser()
+	private String getServerNameFromUser(String problemString)
 	{
 		Frame f = new Frame();
 		f.setSize(400,500);
-		CustomDialog cd = new CustomDialog(f, "Tell me the server that you want to connect to:", hostAddress);
+		CustomDialog cd = new CustomDialog(f, problemString + " Tell me the server that you want to connect to (OR 'Q' TO QUIT):", hostAddress);
 		cd.pack();
 		cd.setVisible(true);
+		if (cd.getAnswer().toLowerCase().equals("q")) {
+			System.exit(2);
+		}
 		return cd.getAnswer();
 	}
 	
@@ -220,8 +244,13 @@ public class SillyPanel extends JPanel implements ActionListener, IServerHandler
 	
 	private void doPausedRelatedStuff()
 	{
-		
-		GUIPainter.PaintGameStateScreen(cg, gameStateString);
+		if (gameState == 0) {
+			GUIPainter.PaintGameStateScreen(cg, gameStateString);
+			return;
+		} 
+
+		GUIPainter.PaintResultsForBoth(cg, protagonist.myStats, protagonist.otherStats);
+
 	}
 	
 	private void updateMap(int x, int y, int tile_type)
@@ -321,33 +350,44 @@ public class SillyPanel extends JPanel implements ActionListener, IServerHandler
 		ImageIcon ii = new ImageIcon(this.getClass().getResource(imageName));
         return ii.getImage();
 	}
-		
-	private class MyKeyAdapter extends KeyAdapter
+	
+	public void doKeyReleased(KeyEvent e) 
 	{
-		public void keyReleased(KeyEvent e) 
+		if (gameState > 0) 
 		{
-			if (gameState > 0) 
-			{
-        		int restartKey = KeyEvent.VK_R;
-        		int key = e.getKeyCode();
-        		if (key == restartKey)
-        		{
-        			try {
-						Thread.sleep(20);
-					} catch (InterruptedException e1) { e1.printStackTrace(); }
-					
-        			restart();
-        		}
-        	}
-        }
-
-        public void keyPressed(KeyEvent e) {
-        	if (gameState == 0) {
-	        	protagonist.keyPressed(e);
-        	} 
-        }
-
+    		int restartKey = KeyEvent.VK_R;
+    		int key = e.getKeyCode();
+    		if (key == restartKey)
+    		{
+    			try {
+					Thread.sleep(20);
+				} catch (InterruptedException e1) { e1.printStackTrace(); }
+				
+    			restart();
+    		}
+    	}	
 	}
+	
+	 public void doKeyPressed(KeyEvent e) {
+     	if (gameState == 0) {
+	        protagonist.keyPressed(e);
+     	} 
+     }
+		
+//	private class MyKeyAdapter extends KeyAdapter
+//	{
+//		public void keyReleased(KeyEvent e) 
+//		{
+//
+//        }
+//
+//        public void keyPressed(KeyEvent e) {
+////        	if (gameState == 0) {
+////	        	protagonist.keyPressed(e);
+////        	} 
+//        }
+//
+//	}
 	
 	private void restart()
 	{

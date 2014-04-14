@@ -37,6 +37,17 @@ public class GameStats
 			GameStats.StringWithInt(playerIndex);
 	}
 	
+	public String debugString()
+	{
+		return playerName + sep + 
+			"\n jelly count: " + GameStats.StringWithInt(jellyCount) + sep + 
+			"\n is possessed: " + String.valueOf(isPossessed) + sep +
+			" health: " + GameStats.StringWithInt(playerHealth) + sep + 
+			" coord: " + coord.toString() + sep +
+			" isVictorious: " + String.valueOf(isVictorious) + sep +
+			"\n player Indes: " + GameStats.StringWithInt(playerIndex);
+	}
+	
 	public static GameStats FromString(String gss)
 	{
 		if (gss == null || gss.length() == 0)

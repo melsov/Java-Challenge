@@ -18,6 +18,8 @@ public class ServerHandler implements Runnable
 	private String serverIP = ""; // "localhost";
 	private IServerHandlerUpdate updateDelegate;
 	public boolean timeToQuit = false;
+	public HandlerConnectionStatus connectionStatus;
+	
 	
 	public ServerHandler(IServerHandlerUpdate updateDelegate_, String serverIP_)
 	{
@@ -25,12 +27,21 @@ public class ServerHandler implements Runnable
 		serverIP = serverIP_;
 		try {
 			listenerSocket = new DatagramSocket();
-			listenerSocket.setSoTimeout(4000); //2 seconds then die
+		} catch (SocketException e) {
+			e.printStackTrace();
+		}
+		sayHiToServer();
+	}
+	
+	private void sayHiToServer()
+	{
+		try {
+			listenerSocket.setSoTimeout(4000); //4 seconds then die
 		} catch (SocketException e1) {
 			e1.printStackTrace();
 			System.exit(1);
 		}
-		sayHiToServer();
+		doSayHiToServer();
 		try {
 			listenerSocket.setSoTimeout(0);
 		} catch (SocketException e) {
@@ -38,25 +49,32 @@ public class ServerHandler implements Runnable
 		}
 	}
 	
-	private void sayHiToServer() 
+	private void doSayHiToServer() 
 	{
 		String response = "";
 		try {
 			response = requestFromServer(ZeldaUDPServer.SAY_HI_REQUEST ); 
 		} catch (IOException e) {
 			e.printStackTrace();
+			connectionStatus = HandlerConnectionStatus.NO_CONNECTION;
 		}
 		
 		if (response.equals("ONE"))
 		{
 			playerNumber = 0;
+			connectionStatus = HandlerConnectionStatus.ACCEPTED;
 		} else if (response.equals(ZeldaUDPServer.OTHER_ARRIVED)) {
 			playerNumber = 1;
+			connectionStatus = HandlerConnectionStatus.ACCEPTED;
 			handleOtherArrived();
 		}
 		else {
-			System.out.println("Say response: " + response + "\n exiting");
-			System.exit(1);
+			if (response.equals("NEITHER"))
+			{
+				System.out.println("Say response: " + response + "\n too many players in other words");
+				connectionStatus = HandlerConnectionStatus.REJECTED;
+			}
+//			System.exit(1);
 		}
 		System.out.println("Say response: " + response);
 		
@@ -80,8 +98,9 @@ public class ServerHandler implements Runnable
 		try {
 			listenerSocket.receive(receivePacket);
 		} catch(java.net.SocketTimeoutException timeOutE) {
-			System.out.println("Zelda client server listener didn't hear back from the server promptly. I will die now.");
-			System.exit(1234);
+//			System.out.println("Zelda client server listener didn't hear back from the server promptly. I will die now.");
+//			System.exit(1234);
+			connectionStatus = HandlerConnectionStatus.NO_CONNECTION;
 		}
 		String response = new String(receivePacket.getData());
 
@@ -91,6 +110,7 @@ public class ServerHandler implements Runnable
 	@Override
 	public void run() 
 	{
+		
 		byte[] receiveData = new byte[1024];
 
 		while(true)

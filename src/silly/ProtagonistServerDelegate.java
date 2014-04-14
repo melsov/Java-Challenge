@@ -61,14 +61,16 @@ public class ProtagonistServerDelegate implements IServerRequest
 			System.out.println("Receive failed. yikes.");
 			toE.printStackTrace();
 			
-			//EXPERIMENTAL??
-			try {
-				Thread.sleep(5);
-			} catch (InterruptedException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			}
-			return requestFromServer(request); /* just try again */
+//			//EXPERIMENTAL??
+//			try {
+//				Thread.sleep(5);
+//			} catch (InterruptedException e) {
+//				// TODO Auto-generated catch block
+//				e.printStackTrace();
+//			}
+			System.out.println("I can't recover from what happened. I will now go away.");
+			System.exit(1);
+//			return requestFromServer(request); /* just try again */
 			
 		} catch (IOException e) {
 			e.printStackTrace();

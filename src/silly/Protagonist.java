@@ -78,6 +78,7 @@ public class Protagonist
 	
 	public Protagonist(ZeldaMap zeldaMap_, Image normalImage_, Image possessedImage_, IServerRequest serverDelegate_)
 	{
+		D.print("Hark. a new protagonist enters the world");
 		serverDelegate = serverDelegate_;
 		zeldaMap = zeldaMap_;
 		normalImage = normalImage_;
@@ -109,6 +110,8 @@ public class Protagonist
 	}
 	
 	private void setGameStatsWithPlayerIndex(ServerCommunication scomm) {
+		if (scomm == null || scomm.gameStats == null)
+			return;
 		if (myPlayerIndex() == scomm.playerIndex)
 		{
 			myStats = scomm.gameStats;
@@ -175,6 +178,7 @@ public class Protagonist
 	
 	private void win()
 	{
+		D.print("****ABOUT TO WIN*****\n\n");
 		myStats.isVictorious = true;
 		sendServerMyStatsWithHeader(ZeldaUDPServer.I_WON_REQUEST);
 	}

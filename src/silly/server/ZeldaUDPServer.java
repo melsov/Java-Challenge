@@ -7,6 +7,7 @@ import java.net.*;
 
 import javax.swing.*;
 
+import silly.D;
 import silly.GameStats;
 import silly.Point2I;
 import silly.PlayerContactInfo;
@@ -127,6 +128,7 @@ public class ZeldaUDPServer extends JFrame
 		String msg_header = msg_parts[0].trim();
 		String scomm_msg_header = scomm_msg_parts[0].trim();
 		
+		D.print("Client query message: " + message);
 		if (msg_header.equals(MOVE_REQUEST)) {
 			return handleCanIMove(msg_parts);
 		}
@@ -154,12 +156,16 @@ public class ZeldaUDPServer extends JFrame
 	
 	private void reset()
 	{
+		System.out.println("Reset in server.");
 		if (playerRolodex[0] != null && playerRolodex[1] != null)
 		{
+			D.print("RESETTING ROLODEX");
 			playerRolodex = new PlayerInfo[2];
 		}
 		if (playerCount == 2) //player count now useless - ish
 			playerCount = 0;
+		
+		capturedJellies = 0;
 		writeToPanel("SOMEBODY WON. OR ALL JELLIES WERE TAKEN");
 	}
 	
@@ -173,6 +179,11 @@ public class ZeldaUDPServer extends JFrame
 	{
 		ServerCommunication scomm = ServerCommunication.FromString(scomm_string);
 		PlayerInfo otherPInfo = getOtherPlayerInfoWith(scomm.playerIndex);
+		if (otherPInfo == null) {
+			D.print("null other Pinfo in handle I won");
+			debugRolodex();
+			return;
+		}
 		sendResponse(scomm.toString(), otherPInfo.contactInfo);
 		reset();
 	}
@@ -193,6 +204,7 @@ public class ZeldaUDPServer extends JFrame
 //		if (playerCount == 0)
 		if (playerRolodex[0] == null)
 		{
+			D.Assert(playerRolodex[1] == null, "the other player info in rolodex should be null");
 			playerRolodex[0] = new PlayerInfo(pci);
 			playerCount++;
 			sendResponse("ONE", pci);
@@ -238,11 +250,19 @@ public class ZeldaUDPServer extends JFrame
 		{
 			PlayerInfo thisPInfo = getThisPlayerInfoWith(i);
 			PlayerInfo otherPInfo = getOtherPlayerInfoWith(i);
+			D.Assert(otherPInfo.gameStats.jellyCount == 0, "confusing! non zero jelly count during introduction?");
+			if (otherPInfo.gameStats.jellyCount != 0) {
+				D.print("non zero jelly. must die now");
+				writeToPanel("non zero jelly. must die now");
+				System.exit(1);
+			}
 			ServerCommunication toOtherCommunication = new ServerCommunication(OTHER_EXTENDS_INTRO, thisPInfo.gameStats, getOtherIndexWith(i));
 			sendResponse(toOtherCommunication.toString(), otherPInfo.contactInfo);
+			
+			debugRolodex();
 		}
 	}
-	
+
 	private PlayerInfo getThisPlayerInfoWith(int thisPlayerIndex) {
 		return playerRolodex[thisPlayerIndex];
 	}
@@ -250,7 +270,13 @@ public class ZeldaUDPServer extends JFrame
 	private PlayerInfo getOtherPlayerInfoWith(int thisPlayerIndex) {
 		return playerRolodex[getOtherIndexWith(thisPlayerIndex)];
 	}
-	private int getOtherIndexWith(int thisPlayerIndex) { return thisPlayerIndex == 1 ? 0 : 1; }
+	private int getOtherIndexWith(int thisPlayerIndex) {
+		if (thisPlayerIndex > 1 || thisPlayerIndex < 0) {
+			System.out.print("bad player index: " + thisPlayerIndex);
+			System.exit(1);
+		}
+		return thisPlayerIndex == 1 ? 0 : 1; 
+	}
 	
 	private String handleCanIMove(String[] msg_parts)
 	{
@@ -285,6 +311,13 @@ public class ZeldaUDPServer extends JFrame
 			System.exit(1);
 		}
 		PlayerInfo otherPlayerInfo = getOtherPlayerInfoWith(playerIndex); 
+		
+		if (otherPlayerInfo == null || otherPlayerInfo.gameStats == null)
+		{
+			System.out.println("got a null pinfo or pinfo.gameStats");
+			for(String s : msg_parts) System.out.print(" " +s);
+			return "YES";
+		}
 
 		if (mapOccupiedAt(x, y, otherPlayerInfo.gameStats.coord)) {
 			return "NO";
@@ -321,10 +354,23 @@ public class ZeldaUDPServer extends JFrame
 		}
 
 		PlayerInfo thisPlayerInfo = playerRolodex[playerIndex];
+		PlayerInfo otherPlayerInfo  = playerRolodex[playerIndex == 1 ? 0 : 1];
+		
+		if (thisPlayerInfo == null || thisPlayerInfo.gameStats == null)
+		{
+			System.out.println("got a null pinfo or pinfo.gameStats");
+			for(String s : msg_parts) System.out.print(" " +s);
+			return;
+		}
+		
+		if (thisPlayerInfo.gameStats.isVictorious || otherPlayerInfo.gameStats.isVictorious) {
+			D.print("don't add jellies right now. the game is over");
+			return;
+		}
+		
 		thisPlayerInfo.gameStats.jellyCount = jellyCount;
 		
 		//tell other player about this
-		PlayerInfo otherPlayerInfo  = playerRolodex[playerIndex == 1 ? 0 : 1];
 		String response = ZeldaUDPServer.OTHER_GOT_JELLY + ":" + xx + ":" + yy + ":" + thisPlayerInfo.gameStats.jellyCount;
 		sendResponse(response, otherPlayerInfo.contactInfo);
 		
@@ -335,6 +381,7 @@ public class ZeldaUDPServer extends JFrame
 	private void checkTotalJelly()
 	{
 		if (capturedJellies >= initialJellyCount) {
+			D.print("out of jelly reset: captured Jellies: " + capturedJellies + " gr or eq total jellies: " + initialJellyCount);
 			reset();
 		}
 	}
@@ -361,5 +408,25 @@ public class ZeldaUDPServer extends JFrame
 	{
 		return otherCoord.equal(new Point2I(xx,yy));
 	}
+	
+	
+	private void debugRolodex() {
+		for (PlayerInfo pi : playerRolodex) {
+			debugPInfo(pi);
+		}
+	}
+	
+	private void debugPInfo(PlayerInfo pi)
+	{
+		if (pi == null)
+		{
+			D.print("null pinfo");
+			return;
+		}
+		D.print(pi.debugString());
+	}
+	
+//	private void ass
+	
 	
 }

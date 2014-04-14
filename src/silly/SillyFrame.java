@@ -1,6 +1,13 @@
 package silly;
 
+import java.awt.Frame;
+import java.awt.event.KeyAdapter;
+import java.awt.event.KeyEvent;
+import java.awt.event.KeyListener;
+
 import javax.swing.JFrame;
+
+//import silly.SillyPanel.MyKeyAdapter;
 
 /*
  * Notes 
@@ -47,20 +54,84 @@ public class SillyFrame extends JFrame
 	 * 
 	 */
 	private static final long serialVersionUID = 1L;
+	
+	private SillyPanel panel1;
+	private SillyPanel panel2;
+	
+	private boolean sameScreenMode = false;
 
 	public SillyFrame()
 	{
-		add(new SillyPanel());
+		sameScreenMode = getWantsSameScreenMode();
+		panel1 = new SillyPanel(sameScreenMode);
+		add(panel1);
+		if (sameScreenMode)
+		{
+			panel2 = new SillyPanel(sameScreenMode);
+			add(panel2);
+		}
 		setTitle("Silly Window");
 		setDefaultCloseOperation(EXIT_ON_CLOSE);
-        setSize(SillyPanel.WIDTH_PIXELS, SillyPanel.HEIGHT_PIXELS + SillyPanel.GUI_FOOTER_HEIGHT);
+		int width = SillyPanel.WIDTH_PIXELS;
+        setSize(width, SillyPanel.HEIGHT_PIXELS + SillyPanel.GUI_FOOTER_HEIGHT);
+        
         setLocationRelativeTo(null);
         setVisible(true);
         setResizable(true);
 	}
 	
+	private boolean getWantsSameScreenMode()
+	{
+		Frame f = new Frame();
+		f.setSize(400,500);
+		String network = "NETWORK";
+		CustomDialog cd = new CustomDialog(f, "Are you playing on network? If so, hit return. If not type 'no' (for two players on one computer)", network);
+		cd.pack();
+		cd.setVisible(true);
+		String answer = cd.getAnswer();
+		return !answer.equals(network);
+	}
+	
 	public static void main(String[] args)
 	{
 		new SillyFrame();
-	}	
+	}
+	
+	public void addNotify()
+	{
+		super.addNotify();
+		startUpStuff();
+	}
+	
+	private void startUpStuff()
+	{
+		KeyListener[] kls = this.getKeyListeners();
+		if (kls.length == 0)
+		{
+			addKeyListener(new MyKeyAdapter());
+			setFocusable(true);
+		}
+	}
+	
+	private class MyKeyAdapter extends KeyAdapter
+	{
+		public void keyReleased(KeyEvent e) 
+		{
+			panel1.doKeyReleased(e);
+			if (sameScreenMode)
+        	{
+        		panel2.doKeyReleased(e);
+        	}
+        }
+
+        public void keyPressed(KeyEvent e) {
+        	panel1.doKeyPressed(e);
+        	if (sameScreenMode)
+        	{
+        		panel2.doKeyPressed(e);
+        	}
+
+        }
+
+	}
 }

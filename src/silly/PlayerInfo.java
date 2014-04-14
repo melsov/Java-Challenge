@@ -10,4 +10,17 @@ public class PlayerInfo
 	{
 		contactInfo = pci;
 	}
+	
+	public String debugString()
+	{
+		String result = "";
+		if (gameStats == null) {
+			result += ":GameStats are null:";
+		} else {
+			result += gameStats.debugString() + "\n";
+		}
+		result += "Ready: " + String.valueOf(ready) + "\n";
+		result += contactInfo.toString();
+		return result;
+	}
 }

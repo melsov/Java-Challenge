@@ -11,4 +11,8 @@ public class PlayerContactInfo {
 		IPAddress = inet;
 		port = prt;
 	}
+	
+	public String toString() {
+		return "IPAddress: " + IPAddress.toString() + " port: " + String.valueOf(port);
+	}
 }
