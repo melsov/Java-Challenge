@@ -147,7 +147,8 @@ public class ZeldaUDPServer extends JFrame
 	
 	private void reset()
 	{
-		playerCount = 0;
+		if (playerCount == 2)
+			playerCount = 0;
 		writeToPanel("SOMEBODY WON.");
 	}
 	

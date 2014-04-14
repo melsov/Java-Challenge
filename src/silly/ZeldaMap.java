@@ -46,6 +46,7 @@ public class ZeldaMap
 	
 	private void setupJellyMap()
 	{
+		jellyCount = 0;
 		for(int i = 0; i < tiles.length; ++i)
 		{
 			int[] jelly_column = jellyMap[i];

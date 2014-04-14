@@ -205,6 +205,8 @@ public class SillyPanel extends JPanel implements ActionListener, IServerHandler
 			gameStateString = result_string;
 			paused = true;
 			gameState = winlosestate;
+			if (winlosestate == 3)
+				protagonist.endGameOnServer(); //hack
 		}
 	}
 	
