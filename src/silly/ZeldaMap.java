@@ -15,8 +15,8 @@ public class ZeldaMap
 	public static final int RED_JELLY = 243;
 	private int jellyCount = 0;
 	
-	private Point2I spawnPlayerOnePoint = new Point2I(5,4);
-	private Point2I spawnPlayerTwoPoint = new Point2I(12,15);
+	private Point2I spawnPlayerOnePoint = new Point2I(1,ROWS - 1);
+	private Point2I spawnPlayerTwoPoint = new Point2I(COLUMNS - 1,ROWS - 1);
 	
 	public ZeldaMap()
 	{
