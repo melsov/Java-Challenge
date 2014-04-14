@@ -8,6 +8,7 @@ public class GameStats
 	public int playerHealth = 10;
 	public Point2I coord = new Point2I(0,0);
 	public boolean isVictorious = false;
+	public int playerIndex = -1;
 	
 	public static String sep = ":";
 	
@@ -32,11 +33,14 @@ public class GameStats
 			String.valueOf(isPossessed) + sep +
 			GameStats.StringWithInt(playerHealth) + sep + 
 			coord.toString() + sep +
-			String.valueOf(isVictorious);
+			String.valueOf(isVictorious) + sep +
+			GameStats.StringWithInt(playerIndex);
 	}
 	
 	public static GameStats FromString(String gss)
 	{
+		if (gss == null || gss.length() == 0)
+			return null;
 		GameStats result = new GameStats();
 		String[] gs = gss.split(sep);
 		for (String s : gs)
@@ -50,6 +54,7 @@ public class GameStats
 		int yy = GameStats.IntFromString(gs[5]);
 		result.coord = new Point2I(xx,yy);
 		result.isVictorious = Boolean.parseBoolean(gs[6]);
+		result.playerIndex = GameStats.IntFromString(gs[7]);
 		return result;
 	}
 	

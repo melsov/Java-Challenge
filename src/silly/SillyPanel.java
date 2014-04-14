@@ -26,7 +26,7 @@ public class SillyPanel extends JPanel implements ActionListener, IServerHandler
 	private static final long serialVersionUID = 1L;
 	public static final int WIDTH_PIXELS = 700;
 	public static final int HEIGHT_PIXELS = 700;
-	public static final int GUI_FOOTER_HEIGHT = 100;
+	public static final int GUI_FOOTER_HEIGHT = 150;
 	
 	private static int TILE_WIDTH_PIXELS = WIDTH_PIXELS/ZeldaMap.COLUMNS;
 	private static int TILE_HEIGHT_PIXELS = HEIGHT_PIXELS/ZeldaMap.ROWS;
@@ -205,8 +205,8 @@ public class SillyPanel extends JPanel implements ActionListener, IServerHandler
 			gameStateString = result_string;
 			paused = true;
 			gameState = winlosestate;
-			if (winlosestate == 3)
-				protagonist.endGameOnServer(); //hack
+//			if (winlosestate == 3)
+//				protagonist.endGameOnServer(); //hack
 		}
 	}
 	
@@ -304,8 +304,8 @@ public class SillyPanel extends JPanel implements ActionListener, IServerHandler
 		
 		protagonist = new Protagonist(zeldaMap, normImage, demonImage, protagServerDelegate);
 		protagonist.myStats.playerName = playerName;
-		protagonist.iAmPlayerOne = serverHandler.playerNumber == 0 ? true : false;
-		int playerNum = protagonist.iAmPlayerOne ? 0 : 1;
+		protagonist.myStats.playerIndex = serverHandler.playerNumber; // == 0 ? true : false;
+		int playerNum = protagonist.iAmPlayerOne() ? 0 : 1;
 		Point2I spawnPoint = zeldaMap.spawnPointForPlayer(playerNum);
 		protagonist.setCoord(spawnPoint); 
 
@@ -324,21 +324,27 @@ public class SillyPanel extends JPanel implements ActionListener, IServerHandler
 		
 	private class MyKeyAdapter extends KeyAdapter
 	{
-//		public void keyReleased(KeyEvent e) {
-//            protagonist.keyPressed(e);
-//        }
-
-        public void keyPressed(KeyEvent e) {
-        	protagonist.keyPressed(e);
-        	
-        	if (gameState > 0) {
+		public void keyReleased(KeyEvent e) 
+		{
+			if (gameState > 0) 
+			{
         		int restartKey = KeyEvent.VK_R;
         		int key = e.getKeyCode();
         		if (key == restartKey)
         		{
+        			try {
+						Thread.sleep(20);
+					} catch (InterruptedException e1) { e1.printStackTrace(); }
+					
         			restart();
         		}
         	}
+        }
+
+        public void keyPressed(KeyEvent e) {
+        	if (gameState == 0) {
+	        	protagonist.keyPressed(e);
+        	} 
         }
 
 	}

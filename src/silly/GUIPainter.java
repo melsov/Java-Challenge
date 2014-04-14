@@ -29,8 +29,8 @@ public class GUIPainter
 		
 		lineStartHeight = incrementLine(lineStartHeight);
 		
-		p1 = (playerStats.isPossessed ? "POSSESSED" : "NORMAL").toCharArray();
-		p2 = (otherStats.isPossessed ? "POSSESSED" : "NORMAL").toCharArray();
+		p1 = lineTwoWithStats(playerStats); // (playerStats.isPossessed ? "POSSESSED" : "NORMAL").toCharArray();
+		p2 = lineTwoWithStats(otherStats); //(otherStats.isPossessed ? "POSSESSED" : "NORMAL").toCharArray();
 		g.drawChars(p1, 0, p1.length, GuiOrigin.x + 10, GuiOrigin.y + lineStartHeight);
 		g.drawChars(p2, 0, p2.length, GuiOrigin.x + GuiDimensions.x / 2 + 10, GuiOrigin.y + lineStartHeight);
 		
@@ -42,6 +42,12 @@ public class GUIPainter
 		g.drawChars(p2, 0, p2.length, GuiOrigin.x + GuiDimensions.x / 2 + 10, GuiOrigin.y + lineStartHeight);
 		
 		
+	}
+	
+	private static char[] lineTwoWithStats(GameStats stats) {
+		String pnum = stats.playerIndex == 0 ? "P1" : "P2";
+		String possd = (stats.isPossessed ? "POSSESSED" : "NORMAL");
+		return (pnum + " : " + possd).toCharArray();
 	}
 	
 	private static int incrementLine(int lineHeight) {
@@ -56,10 +62,13 @@ public class GUIPainter
 	public static void PaintGameStateScreen(Graphics cg, String text)
 	{
 		Graphics2D g = (Graphics2D )cg;
-		g.setColor(Color.RED);
+		int midtop = SillyPanel.HEIGHT_PIXELS/2  - 30;
 		
+		g.setColor(new Color(12, 122, 255, 255));
+		g.fillRect(0, midtop, SillyPanel.WIDTH_PIXELS, 100 );
+		g.setColor(Color.RED);
 		char[] pausedchars = (text).toCharArray();
-		g.drawChars(pausedchars, 0, pausedchars.length, SillyPanel.WIDTH_PIXELS/4 + 10, SillyPanel.HEIGHT_PIXELS/2  - 30);
+		g.drawChars(pausedchars, 0, pausedchars.length, SillyPanel.WIDTH_PIXELS/4 + 10, midtop + 40);
 	
 	}
 }

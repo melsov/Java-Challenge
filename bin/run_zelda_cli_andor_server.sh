@@ -1,3 +1,4 @@
+
 if [ "$#" -eq  0 ]; then
     echo "USAGE: sh run_zelda.sh OPTION_NUMBER \n where OPTION_NUMBER could be:\n 0 (just server)\n 1 (just client)\n 2 (both)\n 3 (server and two clients)\n"
     exit 1
@@ -34,4 +35,4 @@ if [ "$OPT" -eq 3 ]; then
 fi
 
 echo "done"
-echo "NOTE: the path to the binary can't have spaces in it. \nThis is the path that was used: \n $BINARY_PATH"
+echo "NOTE: the path to the binary can't have spaces in it. \nThis is the path that was used: \n $BINARY_PATH" 

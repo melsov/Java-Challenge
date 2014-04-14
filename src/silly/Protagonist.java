@@ -21,11 +21,15 @@ public class Protagonist
 	
 	private IServerRequest serverDelegate;
 
-	public boolean iAmPlayerOne;
+//	public boolean iAmPlayerOne;
 	public GameStats myStats = new GameStats();
 	public GameStats otherStats = new GameStats();
 	
 	public static int JELLY_POSSESSED_THRESHOLD = 5;
+	
+	public boolean iAmPlayerOne() {
+		return myStats.playerIndex == 0;
+	}
 	
 	public int getX() {
 		return myStats.coord.x;
@@ -44,7 +48,7 @@ public class Protagonist
 	}
 	
 	public Image getImage() {
-		if (iAmPlayerOne) {
+		if (iAmPlayerOne()) {
 			if (myStats.isPossessed)
 				return possessedImage;
 			return normalImage;
@@ -56,7 +60,7 @@ public class Protagonist
 	}
 	
 	public Image getOtherImage() {
-		if (iAmPlayerOne) {
+		if (iAmPlayerOne()) {
 			if (otherStats.isPossessed)
 				return possessedImageP2;
 			return normalImageP2;
@@ -83,7 +87,7 @@ public class Protagonist
 		//(Rumor has it that this doesn't always work. Works in testing however)
 		Runtime.getRuntime().addShutdownHook(new Thread() {
         	public void run() {
-	        	System.out.println("Shutdown Hook is running!");
+	        	System.out.println("Shutdown Hook is running! (Protagonist class)");
 	        	try {
 					tellServerILeft();
 				} catch (IOException e) {
@@ -96,12 +100,12 @@ public class Protagonist
 	public void otherHasArrived() 
 	{
 		sendServerMyIntroduction();
+		sendInitialJellyCount();
 	}
 	
 	public void gameStateChanged(ServerCommunication scomm)
 	{
 		setGameStatsWithPlayerIndex(scomm);
-		
 	}
 	
 	private void setGameStatsWithPlayerIndex(ServerCommunication scomm) {
@@ -114,7 +118,7 @@ public class Protagonist
 		
 	}
 	private int myPlayerIndex() {
-		return iAmPlayerOne ? 0 : 1;
+		return iAmPlayerOne() ? 0 : 1;
 	}
 	
 	private void moveForward() {
@@ -161,20 +165,18 @@ public class Protagonist
 		}
 	}
 	
-	public void endGameOnServer()
-	{
-		try {
-			requestFromServer(ZeldaUDPServer.I_WON_REQUEST);
-		} catch (IOException e) { e.printStackTrace(); }
-	}
+//	public void endGameOnServer()
+//	{
+////		try {
+////			requestFromServer(ZeldaUDPServer.I_WON_REQUEST);
+////		} catch (IOException e) { e.printStackTrace(); }
+//		sendServerMyStatsWithHeader(ZeldaUDPServer.I_WON_REQUEST);
+//	}
 	
 	private void win()
 	{
-		try {
-			requestFromServer(ZeldaUDPServer.I_WON_REQUEST);
-		} catch (IOException e) { e.printStackTrace(); }
 		myStats.isVictorious = true;
-		sendServerUpdateWithMyStats();
+		sendServerMyStatsWithHeader(ZeldaUDPServer.I_WON_REQUEST);
 	}
 	
 	private void checkPossessed()
@@ -188,7 +190,28 @@ public class Protagonist
 	
 	private void sendServerUpdateWithMyStats()
 	{
-		ServerCommunication comm = ServerCommunication.ServerCommunicationForGameStateChange(this);
+		sendServerMyStatsWithHeader(ZeldaUDPServer.STATE_CHANGED_REQUEST);
+	}
+	
+	private void sendServerMyStatsWithHeader(String header)
+	{
+		ServerCommunication comm = ServerCommunication.ServerCommunicationWithProtagonistAndHeader(this, header);
+		try {
+			requestFromServer(comm.toString());
+		} catch (IOException e) { e.printStackTrace();
+		}
+	}
+	
+	private void sendInitialJellyCount()
+	{
+		int jcount =  zeldaMap.getJellyCount();
+		if (jcount < 1) { System.out.println("BAD INITIAL JELLY COUNT  exiting..."); System.exit(2); }
+		sendServerIntUpdate(ZeldaUDPServer.NOTIFY_INITIAL_JELLY_COUNT_REQUEST, jcount);
+	}
+	
+	private void sendServerIntUpdate(String header, int the_int)
+	{
+		ServerCommunication comm = ServerCommunication.ServerCommunicationWithHeaderAndIntValue(header, this, the_int);
 		try {
 			requestFromServer(comm.toString());
 		} catch (IOException e) { e.printStackTrace();
@@ -199,7 +222,7 @@ public class Protagonist
 	{
 		String x_str = String.valueOf(xx);
 		String y_str = String.valueOf(yy);
-		String playerNum = String.valueOf(iAmPlayerOne ? 0 : 1);
+		String playerNum = String.valueOf(iAmPlayerOne() ? 0 : 1);
 		  
 		String request = ZeldaUDPServer.MOVE_REQUEST + ":" + x_str + ":" + y_str + ":" + playerNum;
 		String response = requestFromServer(request);
@@ -209,10 +232,11 @@ public class Protagonist
 		return false;
 	}
 
+	//TODO: merge a bit with sendServerMyStatsWithHeader...
 	private void sendServerMyIntroduction()
 	{
 		//extend introduction to other
-		ServerCommunication comm = new ServerCommunication(ZeldaUDPServer.INTRODUCTION_REQUEST, this.myStats, iAmPlayerOne ? 0 : 1);
+		ServerCommunication comm = new ServerCommunication(ZeldaUDPServer.INTRODUCTION_REQUEST, this.myStats, iAmPlayerOne() ? 0 : 1);
 		try {
 			requestFromServer(comm.toString());
 		} catch (IOException e) { e.printStackTrace();
@@ -223,7 +247,7 @@ public class Protagonist
 	{
 		String x_str = String.valueOf(xx);
 		String y_str = String.valueOf(yy);
-		String playerNum = String.valueOf(iAmPlayerOne ? 0 : 1);
+		String playerNum = String.valueOf(iAmPlayerOne() ? 0 : 1);
 		String jCountString = String.valueOf(myStats.jellyCount);
 		String request = ZeldaUDPServer.I_GOT_JELLY + ":" + x_str + ":" + y_str + ":" + playerNum + ":" + jCountString;
 		String response = requestFromServer(request);
@@ -255,10 +279,10 @@ public class Protagonist
 		int rightkey = KeyEvent.VK_D;
 		
 		if (same_computer_mode) {
-			upkey = iAmPlayerOne ? KeyEvent.VK_W : KeyEvent.VK_UP;
-			leftkey = iAmPlayerOne ? KeyEvent.VK_A : KeyEvent.VK_LEFT;
-			downkey = iAmPlayerOne ? KeyEvent.VK_S : KeyEvent.VK_DOWN;
-			rightkey = iAmPlayerOne ? KeyEvent.VK_D : KeyEvent.VK_RIGHT;
+			upkey = iAmPlayerOne() ? KeyEvent.VK_W : KeyEvent.VK_UP;
+			leftkey = iAmPlayerOne() ? KeyEvent.VK_A : KeyEvent.VK_LEFT;
+			downkey = iAmPlayerOne() ? KeyEvent.VK_S : KeyEvent.VK_DOWN;
+			rightkey = iAmPlayerOne() ? KeyEvent.VK_D : KeyEvent.VK_RIGHT;
 		}
 		
 		if (key == upkey) {

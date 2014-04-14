@@ -129,7 +129,8 @@ public class ServerHandler implements Runnable
 			handleOtherArrived();
 		} else if (comm_msg_header.equals(ZeldaUDPServer.OTHER_EXTENDS_INTRO)) {
 			handleOtherExtendsIntro(message);
-		} else if (comm_msg_header.equals(ZeldaUDPServer.STATE_CHANGED_REQUEST)) {
+		} else if (comm_msg_header.equals(ZeldaUDPServer.STATE_CHANGED_REQUEST)
+				|| comm_msg_header.equals(ZeldaUDPServer.I_WON_REQUEST)) {
 			handleStateChanged(message);
 		}
 	}

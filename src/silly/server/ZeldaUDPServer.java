@@ -22,12 +22,13 @@ public class ZeldaUDPServer extends JFrame
 	private JScrollPane jScrollPane1;
 	
 	public static String MOVE_REQUEST = "CANIMOVETO"; 
-	public static String WHICH_PLAYER_REQUEST = "AMIPLAYERONEORTWO";
+//	public static String WHICH_PLAYER_REQUEST = "AMIPLAYERONEORTWO";
 	public static String I_LEFT_THE_GAME_REQUEST = "ILEFTTHEGAME";
 	public static String I_GOT_JELLY = "IGOTJELLY";
 	public static String STATE_CHANGED_REQUEST = "STATECHANGED";
 	public static String SAY_HI_REQUEST = "CLIENTLISTENERSAYSHI";
 	public static String INTRODUCTION_REQUEST = "PLAYERSENDSINTRODUCTION";
+	public static String NOTIFY_INITIAL_JELLY_COUNT_REQUEST = "THISISTHEINITIALJELLYCOUNT";
 	
 	public static String I_WON_REQUEST = "IWONREQUEST";
 
@@ -41,6 +42,8 @@ public class ZeldaUDPServer extends JFrame
 	private PlayerInfo[] playerRolodex = new PlayerInfo[2];
 	
 	private DatagramSocket serverSocket;
+	private int initialJellyCount;
+	private int capturedJellies;
 	
 	public ZeldaUDPServer()
 	{
@@ -126,9 +129,11 @@ public class ZeldaUDPServer extends JFrame
 		
 		if (msg_header.equals(MOVE_REQUEST)) {
 			return handleCanIMove(msg_parts);
-		} else if (msg_header.equals(WHICH_PLAYER_REQUEST)) {
-			return handleWhichPlayerAmI();
-		}else if (msg_header.equals(I_LEFT_THE_GAME_REQUEST)) {
+		}
+//		else if (msg_header.equals(WHICH_PLAYER_REQUEST)) {
+//			return handleWhichPlayerAmI();
+//		}
+		else if (msg_header.equals(I_LEFT_THE_GAME_REQUEST)) {
 			handleILeftTheGame();
 		}else if (msg_header.equals(SAY_HI_REQUEST)) {
 			handleClientSaysHi(receivePacket);
@@ -138,8 +143,10 @@ public class ZeldaUDPServer extends JFrame
 			handlePlayerIntroduction(message, receivePacket);
 		}  else if (scomm_msg_header.equals(STATE_CHANGED_REQUEST)) {
 			passServerCommunicationToOther(message);
-		} else if (msg_header.equals(I_WON_REQUEST)) {
-			reset();
+		} else if (scomm_msg_header.equals(I_WON_REQUEST)) {
+			handleIWon(message);
+		} else if (scomm_msg_header.equals(NOTIFY_INITIAL_JELLY_COUNT_REQUEST)) {
+			handleInitialJellyCount(message);
 		}
 		
 		return "WHAT?";
@@ -147,9 +154,27 @@ public class ZeldaUDPServer extends JFrame
 	
 	private void reset()
 	{
-		if (playerCount == 2)
+		if (playerRolodex[0] != null && playerRolodex[1] != null)
+		{
+			playerRolodex = new PlayerInfo[2];
+		}
+		if (playerCount == 2) //player count now useless - ish
 			playerCount = 0;
-		writeToPanel("SOMEBODY WON.");
+		writeToPanel("SOMEBODY WON. OR ALL JELLIES WERE TAKEN");
+	}
+	
+	private void handleInitialJellyCount(String message)
+	{
+		ServerCommunication scomm = ServerCommunication.FromString(message);
+		initialJellyCount = scomm.someIntValue;
+	}
+	
+	private void handleIWon(String scomm_string)
+	{
+		ServerCommunication scomm = ServerCommunication.FromString(scomm_string);
+		PlayerInfo otherPInfo = getOtherPlayerInfoWith(scomm.playerIndex);
+		sendResponse(scomm.toString(), otherPInfo.contactInfo);
+		reset();
 	}
 	
 	private void passServerCommunicationToOther(String scomm_string)
@@ -165,12 +190,14 @@ public class ZeldaUDPServer extends JFrame
 		int port = receivePacket.getPort();
 		PlayerContactInfo pci = new PlayerContactInfo(IPAddress, port);
 		
-		if (playerCount == 0)
+//		if (playerCount == 0)
+		if (playerRolodex[0] == null)
 		{
 			playerRolodex[0] = new PlayerInfo(pci);
 			playerCount++;
 			sendResponse("ONE", pci);
-		} else if (playerCount == 1) {
+//		} else if (playerCount == 1) {
+		} else if (playerRolodex[1] == null) {
 			playerRolodex[1] = new PlayerInfo(pci);
 			playerCount++;
 			announcePlayerArrivals();
@@ -227,6 +254,11 @@ public class ZeldaUDPServer extends JFrame
 	
 	private String handleCanIMove(String[] msg_parts)
 	{
+		if (msg_parts == null || msg_parts.length < 4)
+		{
+			System.out.println("funky message array in handleCan I move. letting them move anyway");
+			return "YES";
+		}
 		//TODO: replace these communications with a custom
 		// serializable object
 		String xx = msg_parts[1];
@@ -283,7 +315,6 @@ public class ZeldaUDPServer extends JFrame
 			out.println("Exception in parse jelly Count string ?...jjCount: " + jjCount);
 		}
 		
-		//tell other client that other player moved.
 		if (playerIndex == -1) {
 			System.out.println("Big problem: no player index in can I move message. exiting. playerIndex string was: " + playerIndex_string);
 			System.exit(1);
@@ -297,23 +328,33 @@ public class ZeldaUDPServer extends JFrame
 		String response = ZeldaUDPServer.OTHER_GOT_JELLY + ":" + xx + ":" + yy + ":" + thisPlayerInfo.gameStats.jellyCount;
 		sendResponse(response, otherPlayerInfo.contactInfo);
 		
+		capturedJellies++;
+		checkTotalJelly();
 	}
 	
-	private String handleWhichPlayerAmI()
+	private void checkTotalJelly()
 	{
-		if (playerCount == 0) {
-			playerCount++;
-			return "ONE";
-		} else if (playerCount == 1) {
-			playerCount++;
-			return "TWO";
+		if (capturedJellies >= initialJellyCount) {
+			reset();
 		}
-		return "NEITHER";
 	}
+	
+//	private String handleWhichPlayerAmI()
+//	{
+//		if (playerCount == 0) {
+//			playerCount++;
+//			return "ONE";
+//		} else if (playerCount == 1) {
+//			playerCount++;
+//			return "TWO";
+//		}
+//		return "NEITHER";
+//	}
 	
 	private void handleILeftTheGame()
 	{
 		playerCount--;
+		playerCount = playerCount < 0 ? 0 : playerCount;
 	}
 	
 	private boolean mapOccupiedAt(int xx, int yy, Point2I otherCoord)
