@@ -28,6 +28,8 @@ public class ZeldaUDPServer extends JFrame
 	public static String STATE_CHANGED_REQUEST = "STATECHANGED";
 	public static String SAY_HI_REQUEST = "CLIENTLISTENERSAYSHI";
 	public static String INTRODUCTION_REQUEST = "PLAYERSENDSINTRODUCTION";
+	
+	public static String I_WON_REQUEST = "IWONREQUEST";
 
 	public static String OTHER_ARRIVED = "OTHERARRIVED";
 	public static String OTHER_EXTENDS_INTRO = "OTHEREXTENDSINTRO";
@@ -136,9 +138,17 @@ public class ZeldaUDPServer extends JFrame
 			handlePlayerIntroduction(message, receivePacket);
 		}  else if (scomm_msg_header.equals(STATE_CHANGED_REQUEST)) {
 			passServerCommunicationToOther(message);
+		} else if (msg_header.equals(I_WON_REQUEST)) {
+			reset();
 		}
 		
 		return "WHAT?";
+	}
+	
+	private void reset()
+	{
+		playerCount = 0;
+		writeToPanel("SOMEBODY WON.");
 	}
 	
 	private void passServerCommunicationToOther(String scomm_string)

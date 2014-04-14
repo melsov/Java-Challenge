@@ -17,6 +17,7 @@ public class ServerHandler implements Runnable
 	public int playerNumber = -1;
 	private String serverIP = ""; // "localhost";
 	private IServerHandlerUpdate updateDelegate;
+	public boolean timeToQuit = false;
 	
 	public ServerHandler(IServerHandlerUpdate updateDelegate_, String serverIP_)
 	{
@@ -94,6 +95,8 @@ public class ServerHandler implements Runnable
 
 		while(true)
 		{
+			if (timeToQuit)
+				break;
 			receiveData = new byte[1024]; //wipe out any old data
 			//RECEIVE
 			DatagramPacket receivePacket = new DatagramPacket(receiveData, receiveData.length);

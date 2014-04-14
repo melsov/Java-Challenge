@@ -163,6 +163,9 @@ public class Protagonist
 	
 	private void win()
 	{
+		try {
+			requestFromServer(ZeldaUDPServer.I_WON_REQUEST);
+		} catch (IOException e) { e.printStackTrace(); }
 		myStats.isVictorious = true;
 		sendServerUpdateWithMyStats();
 	}

@@ -9,6 +9,7 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
+import java.awt.event.KeyListener;
 import java.util.HashMap;
 
 import javax.swing.ImageIcon;
@@ -33,7 +34,7 @@ public class SillyPanel extends JPanel implements ActionListener, IServerHandler
 	private Image canvas; /*off-screen image*/
 	private Graphics cg; /*the graphics of the off-screen image*/
 	
-	private ZeldaMap zeldaMap = new ZeldaMap();
+	private ZeldaMap zeldaMap;
 	private HashMap<Integer, Image> imageLookup = new HashMap<Integer, Image>();
 	
 	private Protagonist protagonist;
@@ -65,26 +66,44 @@ public class SillyPanel extends JPanel implements ActionListener, IServerHandler
 	{
 		gameState = 0;
 		gameStateString = "PAUSED";
+		paused = true;
+		otherHasArrived = false;
+		zeldaMap = new ZeldaMap();
 		//TODO: while they fail to give a ping-able server...
 		hostAddress = getServerNameFromUser();
 		
-//		KeyListener[] kls = this.getKey
-		addKeyListener(new MyKeyAdapter());
-		setFocusable(true);
+		KeyListener[] kls = this.getKeyListeners();
+		if (kls.length == 0)
+		{
+			addKeyListener(new MyKeyAdapter());
+			setFocusable(true);
+		}
 		
 		setupCanvas();
 		drawTheWholeMap();
 		GUIPainter.PaintGameStateScreen(cg, "WAITING FOR OPPONENT");
 		
+		endThreads();
 		//CONSIDER: hostAddress is owned by two objects...
 		serverHandler = new ServerHandler(this, hostAddress);
 		setupProtagonist(new ProtagonistServerDelegate(hostAddress));
 		
 		Thread t = new Thread(serverHandler);
 		t.start();
+//		serverHandlerThread = t;
 		
 		//START LATER
 		timer = new Timer(12, this);
+	}
+	
+	private void endThreads()
+	{
+		if (serverHandler != null) {
+			serverHandler.timeToQuit = true;
+		}
+		if (timer != null) {
+			timer.stop();
+		}
 	}
 	
 	private void startGame()
@@ -173,10 +192,13 @@ public class SillyPanel extends JPanel implements ActionListener, IServerHandler
 		String result_string = "";
 		if (protagonist.myStats.isVictorious) {
 			winlosestate = 1;
-			result_string = "YOU WON!";
+			result_string = "YOU WON! PRESS 'R' TO RESTART";
 		} else if (protagonist.otherStats.isVictorious) {
 			winlosestate = 2;
-			result_string = "YOU LOST";
+			result_string = "YOU LOST. PRESS 'R' TO RESTART";
+		} else if (zeldaMap.getJellyCount() < 1) {
+			winlosestate = 3;
+			result_string = "THE GAME IS OVER AND, IN THE END, NOTHING HAPPENED. PRESS 'R' TO RESTART";
 		}
 		
 		if (winlosestate > 0) {
@@ -321,7 +343,6 @@ public class SillyPanel extends JPanel implements ActionListener, IServerHandler
 	
 	private void restart()
 	{
-		
 		doStartOfGameStuff();
 	}
 
