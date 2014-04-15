@@ -88,19 +88,20 @@ public class GUIPainter
 		if (!pOneWon) {
 			pOneWon = playerOneWon(otherStats);
 		}
-		char[] p1 = (playerStats.playerName + " " + WonLostStringWith(playerStats) ).toCharArray();
-		char[] p2 = (otherStats.playerName + " " + WonLostStringWith(otherStats) + ". PRESS 'R' TO RESTART").toCharArray();
+		char[] p1 = (playerStats.playerName + " " + WonLostStringWith(playerStats)).toCharArray();
+		char[] p2 = (otherStats.playerName + " " + WonLostStringWith(otherStats)).toCharArray();
+		char[] p3 = ( "PRESS 'R' TO RESTART, 'Q' TO QUIT, 'H' TO SEE THE RULES.").toCharArray();
 		
 		int lineStartHeight = 15;
 		g.setColor(new Color(12, 122, 255, 255));
-		g.fillRect(0, midtop, SillyPanel.WIDTH_PIXELS, 100 );
+		g.fillRect(0, midtop, SillyPanel.WIDTH_PIXELS, 200 );
 		SetFontSize(g, LARGE_FONT_SIZE);
 		g.setColor(ColorForPlayerOneWon(pOneWon));
 		g.drawChars(p1, 0, p1.length, SillyPanel.WIDTH_PIXELS/16 + 10, midtop + 40 + lineStartHeight);
 		lineStartHeight = incrementLine(lineStartHeight);
-		g.drawChars(p2, 0, p2.length, SillyPanel.WIDTH_PIXELS/16 + 10, midtop + 40 + + lineStartHeight);
-		
-		
+		g.drawChars(p2, 0, p2.length, SillyPanel.WIDTH_PIXELS/16 + 10, midtop + 40 + lineStartHeight);
+		lineStartHeight = incrementLine(lineStartHeight);
+		g.drawChars(p3, 0, p3.length, SillyPanel.WIDTH_PIXELS/16 + 10, midtop + 40 + lineStartHeight);
 	}
 	
 	private static boolean playerOneWon(GameStats stats) {

@@ -313,24 +313,7 @@ public class Protagonist
 	//SOUND
 	public static synchronized void playSound(final String url) 
 	{
-		  new Thread(new Runnable() {
-		  // The wrapper thread is unnecessary, unless it blocks on the
-		  // Clip finishing; see comments.
-		    public void run() {
-		      try {
-		        Clip clip = AudioSystem.getClip();
-		        java.io.InputStream audioSrc = this.getClass().getResourceAsStream(url);
-		        BufferedInputStream bufferedInput = new BufferedInputStream(audioSrc);
-		        AudioInputStream inputStream = AudioSystem.getAudioInputStream(bufferedInput);
-		        
-		        clip.open(inputStream);
-		        clip.start(); 
-		      } catch (Exception e) {
-		    	  
-		        System.err.println(e.getMessage());
-		      }
-		    }
-		  }).start();
+		SoundPlayer.PlaySound(url);
 	}
 	
 }

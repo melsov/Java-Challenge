@@ -5,7 +5,9 @@ import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
 
+import javax.swing.ImageIcon;
 import javax.swing.JFrame;
+import javax.swing.JOptionPane;
 
 import silly.server.ZeldaUDPServer;
 
@@ -62,9 +64,15 @@ public class SillyFrame extends JFrame
 	private ZeldaUDPServer zeldaServer;
 	
 	private boolean sameScreenMode = false;
+	
+	private ImageIcon linkIcon;
+	private ImageIcon demonLinkIcon;
 
 	public SillyFrame()
 	{
+		linkIcon = getImageIcon("normalLink.png");
+		demonLinkIcon = getImageIcon("demonLinkP2.png");
+		
 		sameScreenMode = getWantsSameScreenMode();
 		boolean runServerAlso = sameScreenMode;
 		if (!runServerAlso) {
@@ -77,11 +85,14 @@ public class SillyFrame extends JFrame
 			t.start();
 		}
 		
-		panel1 = new SillyPanel(sameScreenMode);
+		panel1 = new SillyPanel(sameScreenMode, runServerAlso);
 		add(panel1);
 		if (sameScreenMode)
 		{
-			panel2 = new SillyPanel(sameScreenMode);
+			/* SAME SCREEN MODE IS A HACK. PANEL1 SIMPLY 'HIDES' BEHIND PANEL 2.
+			 * AND, THIS JFRAME DIRECTS ARROWS AND 'WASD' KEYPRESSES TO PANEL1 AND PANEL2. 
+			 * OTHERWISE, ITS THE SAME AS NETWORK MODE. */
+			panel2 = new SillyPanel(sameScreenMode, runServerAlso);
 			add(panel2);
 		}
 		setTitle("Silly Window");
@@ -96,27 +107,60 @@ public class SillyFrame extends JFrame
 	
 	private boolean getWantsSameScreenMode()
 	{
-		Frame f = new Frame();
-		f.setSize(400,500);
-		String network = "NETWORK";
-		CustomDialog cd = new CustomDialog(f, "Do you want to play over a network? If so, hit return. If not type 'no' (for two players, one computer)", network);
-		cd.pack();
-		cd.setVisible(true);
-		String answer = cd.getAnswer();
-		return !answer.equals(network);
+		//Custom button text
+		Object[] options = {"Two player mode",
+							"Over a network",
+		                    };
+		Frame frame = new Frame();
+		
+		int n = JOptionPane.showOptionDialog(frame,
+		    "Would you like to play the game with two computers (over a network) or on one computer (two player mode)?",
+		    "Choose game mode",
+		    JOptionPane.YES_NO_CANCEL_OPTION,
+		    JOptionPane.QUESTION_MESSAGE,
+		    linkIcon,
+		    options,
+		    options[0]);
+		return n == 0;
 	}
 	
 	private boolean getWantsClientAndServer()
 	{
-		Frame f = new Frame();
-		f.setSize(400,500);
-		String network = "CLIENT AND SERVER";
-		CustomDialog cd = new CustomDialog(f, "Want to host this game? (just hit return). To connect to another server, type any key and then hit return. ", network);
-		cd.pack();
-		cd.setVisible(true);
-		String answer = cd.getAnswer();
-		return answer.equals(network);
-	}	
+		//Custom button text
+		Object[] options = {"Client and server",
+							"Just client",
+							"How do I find my computer's network name?",
+		                    };
+		Frame frame = new Frame();
+		
+		int n = JOptionPane.showOptionDialog(frame,
+		    "You're playing someone on another computer.\n One of you has to be the 'client and server'\n" +
+		    	" and the other has to be 'just a client'.\n " +
+			    "Client-and-server has to tell client her or his computer's network name.",
+		    "Client and server or just client?",
+		    JOptionPane.YES_NO_CANCEL_OPTION,
+		    JOptionPane.QUESTION_MESSAGE,
+		    demonLinkIcon,
+		    options,
+		    options[0]);
+
+		if (n == 2) {
+			JOptionPane.showMessageDialog(frame,
+		    "On a mac: go to System Preferences. \nGo to the 'Sharing' section.\n" +
+		    "Look for the sentence: 'Computers on your local network can access your computer at:'\n" +
+		    "The next line should say something like: 'comp-name.local'\n" +
+		    "This is your computer's name.\n" +
+		    "If you are playing as 'Client and server' \n tell the other person (who is 'Just client') this name.\n" +
+		    " They will have to type it soon.");
+			return getWantsClientAndServer();
+		}
+		
+		return n == 0;
+	}
+	
+	private ImageIcon getImageIcon(String imURL) {
+		return new ImageIcon(this.getClass().getResource(imURL));
+	}
 	
 	public static void main(String[] args)
 	{

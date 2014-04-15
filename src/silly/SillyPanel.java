@@ -13,6 +13,7 @@ import java.awt.event.KeyListener;
 import java.util.HashMap;
 
 import javax.swing.ImageIcon;
+import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.Timer;
 
@@ -52,10 +53,12 @@ public class SillyPanel extends JPanel implements ActionListener, IServerHandler
 	private String nameOfPlayer = "";
 	
 	private boolean sameScreenMode;
+	private boolean isAlsoRunningServer;
 	
-	public SillyPanel(boolean wantSameScreenMode)
+	public SillyPanel(boolean wantSameScreenMode, boolean runningClientAndServer)
 	{
 		sameScreenMode = wantSameScreenMode;
+		isAlsoRunningServer = runningClientAndServer;
 		setupImageLookup();
 	}
 	
@@ -78,13 +81,13 @@ public class SillyPanel extends JPanel implements ActionListener, IServerHandler
 		protagonist = null;
 		serverHandler = null;
 		
-		if (!sameScreenMode)
+		if (!sameScreenMode && !isAlsoRunningServer)
 		{
 			String problemConnectingString = "";
 			//while they fail to give a ping-able server...
 			while(serverHandler == null || serverHandler.connectionStatus != HandlerConnectionStatus.ACCEPTED)
 			{
-				hostAddress = getServerNameFromUser(problemConnectingString);
+				hostAddress = getServerNameFromUser(hostAddress, problemConnectingString);
 				serverHandler = new ServerHandler(this, hostAddress);
 				if (serverHandler.connectionStatus == HandlerConnectionStatus.REJECTED)
 					problemConnectingString = "THAT SERVER ALREADY HAS TWO PEOPLE. SORRY. ";
@@ -154,27 +157,33 @@ public class SillyPanel extends JPanel implements ActionListener, IServerHandler
 	public void introduceOther(GameStats otherStats) 
 	{
 		protagonist.otherStats = otherStats;
-		startGame();
+		
+		CountDown countDown = new CountDown();
+		Thread t = new Thread(countDown);
+		t.start();
+		
+//		startGame();
 	}
 	
-	private String getGameHandleFromUser()
+	private static String getGameHandleFromUser(String defaultName)
 	{
 		Frame f = new Frame();
 		f.setSize(400,500);
-		if (nameOfPlayer == "") {
-			nameOfPlayer = RandomNameGenerator.GetName();
+		if (defaultName == null || defaultName == "") {
+			defaultName = RandomNameGenerator.GetName();
 		}
-		CustomDialog cd = new CustomDialog(f, "Tell me your name:", nameOfPlayer);
+		CustomDialog cd = new CustomDialog(f, "Tell me your name: .............", defaultName);
 		cd.pack();
 		cd.setVisible(true);
 		return cd.getAnswer();
 	}
 	
-	private String getServerNameFromUser(String problemString)
+	private static String getServerNameFromUser(String theHostAddress, String problemString)
 	{
 		Frame f = new Frame();
 		f.setSize(400,500);
-		CustomDialog cd = new CustomDialog(f, problemString + " Tell me the server that you want to connect to (OR 'Q' TO QUIT):", hostAddress);
+		CustomDialog cd = new CustomDialog(f, problemString + 
+				" Tell me the server that you want to connect to (OR 'Q' TO QUIT):", theHostAddress);
 		cd.pack();
 		cd.setVisible(true);
 		if (cd.getAnswer().toLowerCase().equals("q")) {
@@ -212,13 +221,13 @@ public class SillyPanel extends JPanel implements ActionListener, IServerHandler
 		String result_string = "";
 		if (protagonist.myStats.isVictorious) {
 			winlosestate = 1;
-			result_string = "YOU WON! PRESS 'R' TO RESTART";
+			result_string = "YOU WON! PRESS 'R' TO RESTART, 'Q' TO QUIT";
 		} else if (protagonist.otherStats.isVictorious) {
 			winlosestate = 2;
-			result_string = "YOU LOST. PRESS 'R' TO RESTART";
+			result_string = "YOU LOST. PRESS 'R' TO RESTART, 'Q' TO QUIT";
 		} else if (zeldaMap.getJellyCount() < 1) {
 			winlosestate = 3;
-			result_string = "THE GAME IS OVER AND, IN THE END, NOTHING HAPPENED. PRESS 'R' TO RESTART";
+			result_string = "THE GAME IS OVER AND, IN THE END, NOTHING HAPPENED. PRESS 'R' TO RESTART, 'Q' TO QUIT";
 		}
 		
 		if (winlosestate > 0) {
@@ -309,17 +318,16 @@ public class SillyPanel extends JPanel implements ActionListener, IServerHandler
 		cg.drawImage(otherImage, protagonist.otherStats.coord.x * TILE_WIDTH_PIXELS, protagonist.otherStats.coord.y * TILE_HEIGHT_PIXELS, TILE_WIDTH_PIXELS, TILE_HEIGHT_PIXELS, null);
 	}
 	
-	private void setupImageLookup()
-	{
-		Image wallImage = imageWithName("wall.png");
-		imageLookup.put(ZeldaMap.WALL, wallImage);
-		Image groundImage = imageWithName("ground.png");
-		imageLookup.put(ZeldaMap.GROUND, groundImage);
-		Image doorNorthImage = imageWithName("door_north.png");
-		imageLookup.put(ZeldaMap.DOOR_NORTH, doorNorthImage);
-		Image redJellyImage = imageWithName("jelly.png");
-		imageLookup.put(ZeldaMap.RED_JELLY, redJellyImage);
-	}
+	private void setupImageLookup() {
+        Image wallImage = imageWithName("wall.png");
+        imageLookup.put(ZeldaMap.WALL, wallImage);
+        Image groundImage = imageWithName("ground.png");
+        imageLookup.put(ZeldaMap.GROUND, groundImage);
+        Image doorNorthImage = imageWithName("door_north.png");
+        imageLookup.put(ZeldaMap.DOOR_NORTH, doorNorthImage);
+        Image redJellyImage = imageWithName("jelly.png");
+        imageLookup.put(ZeldaMap.RED_JELLY, redJellyImage);
+    }
 
 	private void setupProtagonist(IServerRequest protagServerDelegate)
 	{
@@ -328,7 +336,7 @@ public class SillyPanel extends JPanel implements ActionListener, IServerHandler
 		
 		if (zeldaMap == null) { System.out.println("not cool. we need a zelda map at this point"); System.exit(1); }
 		
-		String playerName = getGameHandleFromUser();
+		String playerName = getGameHandleFromUser(nameOfPlayer);
 		
 		protagonist = new Protagonist(zeldaMap, normImage, demonImage, protagServerDelegate);
 		protagonist.myStats.playerName = playerName;
@@ -355,16 +363,24 @@ public class SillyPanel extends JPanel implements ActionListener, IServerHandler
 		if (gameState > 0) 
 		{
     		int restartKey = KeyEvent.VK_R;
+    		int quitKey = KeyEvent.VK_Q;
+    		int helpKey = KeyEvent.VK_H;
     		int key = e.getKeyCode();
     		if (key == restartKey)
     		{
+    			//sleep for a moment, to make sure the 'r'
+    			//doesn't get typed into the next dialog box.
     			try {
 					Thread.sleep(20);
 				} catch (InterruptedException e1) { e1.printStackTrace(); }
 				
     			restart();
+    		} else if (key == quitKey) {
+    			System.exit(0);
+    		} else if (key == helpKey) {
+    			showHelp();
     		}
-    	}	
+    	} 
 	}
 	
 	 public void doKeyPressed(KeyEvent e) {
@@ -372,21 +388,42 @@ public class SillyPanel extends JPanel implements ActionListener, IServerHandler
 	        protagonist.keyPressed(e);
      	} 
      }
+	 
+	 private void showHelp()
+	 {
+		 JOptionPane.showMessageDialog(new Frame(),
+				    "Collect enough Jelly to become possessed.\n" +
+				    "Once you are possessed you can go through the door.\n" +
+				    "The player who goes through the door first wins.");
+	 }
 		
-//	private class MyKeyAdapter extends KeyAdapter
-//	{
-//		public void keyReleased(KeyEvent e) 
-//		{
-//
-//        }
-//
-//        public void keyPressed(KeyEvent e) {
-////        	if (gameState == 0) {
-////	        	protagonist.keyPressed(e);
-////        	} 
-//        }
-//
-//	}
+	 private class CountDown implements Runnable
+	 {
+
+		@Override
+		public void run() 
+		{
+			for(int i = 3; i > 0; --i)
+			{
+				SoundPlayer.PlaySound("tok.wav");
+				String count = String.valueOf(i);
+				GUIPainter.PaintGameStateScreen(cg, count);
+				repaint();
+				sleeps(1500);
+			}
+			
+			startGame();
+		}
+		
+		private void sleeps(int millis) {
+			try {
+				Thread.sleep(millis);
+			} catch (InterruptedException e) {
+				e.printStackTrace();
+			}
+		}
+		 
+	 }
 	
 	private void restart()
 	{

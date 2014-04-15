@@ -31,6 +31,7 @@ package silly;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
  
+import javax.swing.ImageIcon;
 import javax.swing.JOptionPane;
 import javax.swing.JDialog;
 import javax.swing.JTextField;
@@ -69,11 +70,11 @@ class CustomDialog extends JDialog
     }
  
     /** Creates the reusable dialog. */
-    public CustomDialog(Frame aFrame, String question, String initialAnswer) 
+    public CustomDialog(Frame aFrame, String question, String initialAnswer)
     {
     	super(aFrame, true);
 
-        setTitle("Which host??");
+        setTitle("I have a question...");
         
         textField = new JTextField(10);
         textField.setText(initialAnswer);
@@ -91,9 +92,11 @@ class CustomDialog extends JDialog
         optionPane = new JOptionPane(array,
                                     JOptionPane.QUESTION_MESSAGE,
                                     JOptionPane.YES_NO_OPTION,
-                                    null,
+                                    new ImageIcon(this.getClass().getResource("normalLink.png")),
                                     options,
                                     options[0]);
+        
+        optionPane.setBackground(new Color(25, 22, 0, 255));
  
         //Make this dialog display it.
         setContentPane(optionPane);
@@ -132,13 +135,15 @@ class CustomDialog extends JDialog
     }
  
     /** This method reacts to state changes in the option pane. */
-    public void propertyChange(PropertyChangeEvent e) {
+    public void propertyChange(PropertyChangeEvent e) 
+    {
         String prop = e.getPropertyName();
  
         if (isVisible()
          && (e.getSource() == optionPane)
          && (JOptionPane.VALUE_PROPERTY.equals(prop) ||
-             JOptionPane.INPUT_VALUE_PROPERTY.equals(prop))) {
+             JOptionPane.INPUT_VALUE_PROPERTY.equals(prop))) 
+        {
             Object value = optionPane.getValue();
  
             if (value == JOptionPane.UNINITIALIZED_VALUE) {
@@ -150,11 +155,11 @@ class CustomDialog extends JDialog
             //If you don't do this, then if the user
             //presses the same button next time, no
             //property change event will be fired.
-            optionPane.setValue(
-                    JOptionPane.UNINITIALIZED_VALUE);
+            optionPane.setValue(JOptionPane.UNINITIALIZED_VALUE);
  
-            if (btnString1.equals(value)) {
-                    typedText = textField.getText();
+            if (btnString1.equals(value)) 
+            {
+            	typedText = textField.getText();
                 answer = typedText;
                 this.setVisible(false);
                 /*
@@ -178,9 +183,6 @@ class CustomDialog extends JDialog
                 }
                 */
             } else { //user closed dialog or clicked cancel
-//                dd.setLabel("It's OK.  "
-//                         + "We won't force you to type "
-//                         + magicWord + ".");
                 typedText = null;
                 clearAndHide();
             }
