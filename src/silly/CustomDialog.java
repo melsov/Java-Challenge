@@ -68,6 +68,34 @@ class CustomDialog extends JDialog
     public String getValidatedText() {
         return typedText;
     }
+    
+	
+	public static String GetGameHandleFromUser(String defaultName)
+	{
+		Frame f = new Frame();
+		f.setSize(400,500);
+		if (defaultName == null || defaultName == "") {
+			defaultName = RandomNameGenerator.GetName();
+		}
+		CustomDialog cd = new CustomDialog(f, "Tell me your name: .............", defaultName);
+		cd.pack();
+		cd.setVisible(true);
+		return cd.getAnswer();
+	}
+	
+	public static String GetServerNameFromUser(String theHostAddress, String problemString)
+	{
+		Frame f = new Frame();
+		f.setSize(400,500);
+		CustomDialog cd = new CustomDialog(f, problemString + 
+				" Tell me the server that you want to connect to (OR 'Q' TO QUIT):", theHostAddress);
+		cd.pack();
+		cd.setVisible(true);
+		if (cd.getAnswer().toLowerCase().equals("q")) {
+			System.exit(2);
+		}
+		return cd.getAnswer();
+	}
  
     /** Creates the reusable dialog. */
     public CustomDialog(Frame aFrame, String question, String initialAnswer)

@@ -2,14 +2,7 @@ package silly;
 
 import java.awt.Image;
 import java.awt.event.KeyEvent;
-import java.io.BufferedInputStream;
 import java.io.IOException;
-import javax.sound.sampled.AudioInputStream;
-import javax.sound.sampled.AudioSystem;
-import javax.sound.sampled.Clip;
-
-import org.omg.CORBA.portable.InputStream;
-
 import silly.server.ServerCommunication;
 import silly.server.ZeldaUDPServer;
 
@@ -96,11 +89,8 @@ public class Protagonist
 		Runtime.getRuntime().addShutdownHook(new Thread() {
         	public void run() {
 	        	System.out.println("Shutdown Hook is running! (Protagonist class)");
-	        	try {
-					tellServerILeft();
-				} catch (IOException e) {
-					e.printStackTrace();
-				}
+	        	
+				tellServerILeft();
         	}
     	});
 	}
@@ -125,7 +115,6 @@ public class Protagonist
 			return;
 		}
 		otherStats = scomm.gameStats;
-		
 	}
 	private int myPlayerIndex() {
 		return iAmPlayerOne() ? 0 : 1;
@@ -174,18 +163,9 @@ public class Protagonist
 			}
 		}
 	}
-	
-//	public void endGameOnServer()
-//	{
-////		try {
-////			requestFromServer(ZeldaUDPServer.I_WON_REQUEST);
-////		} catch (IOException e) { e.printStackTrace(); }
-//		sendServerMyStatsWithHeader(ZeldaUDPServer.I_WON_REQUEST);
-//	}
-	
+
 	private void win()
 	{
-		D.print("****ABOUT TO WIN*****\n\n");
 		myStats.isVictorious = true;
 		sendServerMyStatsWithHeader(ZeldaUDPServer.I_WON_REQUEST);
 	}
@@ -207,10 +187,7 @@ public class Protagonist
 	private void sendServerMyStatsWithHeader(String header)
 	{
 		ServerCommunication comm = ServerCommunication.ServerCommunicationWithProtagonistAndHeader(this, header);
-		try {
-			requestFromServer(comm.toString());
-		} catch (IOException e) { e.printStackTrace();
-		}
+		requestFromServer(comm.toString());
 	}
 	
 	private void sendInitialJellyCount()
@@ -223,20 +200,13 @@ public class Protagonist
 	private void sendServerIntUpdate(String header, int the_int)
 	{
 		ServerCommunication comm = ServerCommunication.ServerCommunicationWithHeaderAndIntValue(header, this, the_int);
-		try {
-			requestFromServer(comm.toString());
-		} catch (IOException e) { e.printStackTrace();
-		}
+		requestFromServer(comm.toString());
 	}
 
 	private boolean serverSaysItsOKToMove(int xx, int yy) throws IOException 
 	{
-		String x_str = String.valueOf(xx);
-		String y_str = String.valueOf(yy);
-		String playerNum = String.valueOf(iAmPlayerOne() ? 0 : 1);
-		  
-		String request = ZeldaUDPServer.MOVE_REQUEST + ":" + x_str + ":" + y_str + ":" + playerNum;
-		String response = requestFromServer(request);
+		ServerCommunication comm = ServerCommunication.ServerCommunicationWithHeaderAndPointValue(ZeldaUDPServer.MOVE_REQUEST, this, new Point2I(xx,yy));
+		String response = requestFromServer(comm.toString());
 		
 		if (response.trim().equals("YES"))
 			return true;
@@ -248,29 +218,20 @@ public class Protagonist
 	{
 		//extend introduction to other
 		ServerCommunication comm = new ServerCommunication(ZeldaUDPServer.INTRODUCTION_REQUEST, this.myStats, iAmPlayerOne() ? 0 : 1);
-		try {
-			requestFromServer(comm.toString());
-		} catch (IOException e) { e.printStackTrace();
-		}
+		requestFromServer(comm.toString());
 	}
 	
-	private void tellServerThatIGotJelly(int xx, int yy) throws IOException 
+	private void tellServerThatIGotJelly(int xx, int yy)  
 	{
-		String x_str = String.valueOf(xx);
-		String y_str = String.valueOf(yy);
-		String playerNum = String.valueOf(iAmPlayerOne() ? 0 : 1);
-		String jCountString = String.valueOf(myStats.jellyCount);
-		String request = ZeldaUDPServer.I_GOT_JELLY + ":" + x_str + ":" + y_str + ":" + playerNum + ":" + jCountString;
-		String response = requestFromServer(request);
+		ServerCommunication comm = ServerCommunication.ServerCommunicationForGotJelly(this);
+		requestFromServer(comm.toString());
 	}
 	
-	private void tellServerILeft() throws IOException
-	{
+	private void tellServerILeft() {
 		sendServerMyStatsWithHeader(ZeldaUDPServer.I_LEFT_THE_GAME_REQUEST);
-//		requestFromServer(ZeldaUDPServer.I_LEFT_THE_GAME_REQUEST);
 	}
 	
-	private String requestFromServer(String request) throws IOException
+	private String requestFromServer(String request) 
 	{
 		return serverDelegate.requestFromServer(request);
 	}

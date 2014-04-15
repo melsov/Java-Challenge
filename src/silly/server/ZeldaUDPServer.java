@@ -1,12 +1,8 @@
 package silly.server;
 
 import java.io.*;
-
-import static java.lang.System.out;
 import java.net.*;
-
 import javax.swing.*;
-
 import silly.D;
 import silly.GameStats;
 import silly.Point2I;
@@ -23,14 +19,12 @@ public class ZeldaUDPServer extends JFrame implements Runnable
 	private JScrollPane jScrollPane1;
 	
 	public static String MOVE_REQUEST = "CANIMOVETO"; 
-//	public static String WHICH_PLAYER_REQUEST = "AMIPLAYERONEORTWO";
 	public static String I_LEFT_THE_GAME_REQUEST = "ILEFTTHEGAME";
 	public static String I_GOT_JELLY = "IGOTJELLY";
 	public static String STATE_CHANGED_REQUEST = "STATECHANGED";
 	public static String SAY_HI_REQUEST = "CLIENTLISTENERSAYSHI";
 	public static String INTRODUCTION_REQUEST = "PLAYERSENDSINTRODUCTION";
 	public static String NOTIFY_INITIAL_JELLY_COUNT_REQUEST = "THISISTHEINITIALJELLYCOUNT";
-	
 	public static String I_WON_REQUEST = "IWONREQUEST";
 
 	public static String OTHER_ARRIVED = "OTHERARRIVED";
@@ -82,7 +76,6 @@ public class ZeldaUDPServer extends JFrame implements Runnable
 	public static void main(String args[]) throws Exception
 	{	
 		ZeldaUDPServer zeldaserver = new ZeldaUDPServer();
-		
 		zeldaserver.runServer();
 	}
 	
@@ -130,29 +123,25 @@ public class ZeldaUDPServer extends JFrame implements Runnable
 	
 	private String handleClientQuery(String message, DatagramPacket receivePacket)
 	{
-		String[] msg_parts = message.split(":");
-		String[] scomm_msg_parts = message.split(ServerCommunication.seperatorHeader);
+		ServerCommunication scomm = ServerCommunication.FromString(message);
+		String scomm_msg_header = scomm.header; 
 		
-		String msg_header = msg_parts[0].trim();
-		String scomm_msg_header = scomm_msg_parts[0].trim();
-		
-		D.print("Client query message: " + message);
-		if (msg_header.equals(MOVE_REQUEST)) {
-			return handleCanIMove(msg_parts);
+		if (scomm_msg_header.equals(MOVE_REQUEST)) {
+			return handleCanIMove(scomm);
 		} else if (scomm_msg_header.equals(I_LEFT_THE_GAME_REQUEST)) {
-			handleILeftTheGame(message);
-		} else if (msg_header.equals(SAY_HI_REQUEST)) {
+			handleILeftTheGame(scomm);
+		} else if (scomm_msg_header.equals(SAY_HI_REQUEST)) {
 			handleClientSaysHi(receivePacket);
-		} else if (msg_header.equals(I_GOT_JELLY)) {
-			handleClientGotJelly(msg_parts);
+		} else if (scomm_msg_header.equals(I_GOT_JELLY)) {
+			handleClientGotJelly(scomm);
 		} else if (scomm_msg_header.equals(INTRODUCTION_REQUEST)) {
-			handlePlayerIntroduction(message, receivePacket);
+			handlePlayerIntroduction(scomm, receivePacket);
 		} else if (scomm_msg_header.equals(STATE_CHANGED_REQUEST)) {
-			passServerCommunicationToOther(message);
+			passServerCommunicationToOther(scomm);
 		} else if (scomm_msg_header.equals(I_WON_REQUEST)) {
-			handleIWon(message);
+			handleIWon(scomm);
 		} else if (scomm_msg_header.equals(NOTIFY_INITIAL_JELLY_COUNT_REQUEST)) {
-			handleInitialJellyCount(message);
+			handleInitialJellyCount(scomm);
 		}
 		
 		return "WHAT?";
@@ -160,10 +149,7 @@ public class ZeldaUDPServer extends JFrame implements Runnable
 	
 	private void reset()
 	{
-		System.out.println("Reset in server.");
-		if (playerRolodex[0] != null && playerRolodex[1] != null)
-		{
-			D.print("RESETTING ROLODEX");
+		if (playerRolodex[0] != null && playerRolodex[1] != null) {
 			playerRolodex = new PlayerInfo[2];
 		}
 		
@@ -171,28 +157,20 @@ public class ZeldaUDPServer extends JFrame implements Runnable
 		writeToPanel("SOMEBODY WON. OR ALL JELLIES WERE TAKEN");
 	}
 	
-	private void handleInitialJellyCount(String message)
-	{
-		ServerCommunication scomm = ServerCommunication.FromString(message);
+	private void handleInitialJellyCount(ServerCommunication scomm) {
 		initialJellyCount = scomm.someIntValue;
 	}
 	
-	private void handleIWon(String scomm_string)
-	{
-		ServerCommunication scomm = ServerCommunication.FromString(scomm_string);
+	private void handleIWon(ServerCommunication scomm) {
 		PlayerInfo otherPInfo = getOtherPlayerInfoWith(scomm.playerIndex);
 		if (otherPInfo == null) {
-			D.print("null other Pinfo in handle I won");
-			debugRolodex();
 			return;
 		}
 		sendResponse(scomm.toString(), otherPInfo.contactInfo);
 		reset();
 	}
 	
-	private void passServerCommunicationToOther(String scomm_string)
-	{
-		ServerCommunication scomm = ServerCommunication.FromString(scomm_string);
+	private void passServerCommunicationToOther(ServerCommunication scomm) {
 		PlayerInfo otherPInfo = getOtherPlayerInfoWith(scomm.playerIndex);
 		sendResponse(scomm.toString(), otherPInfo.contactInfo);
 	}
@@ -205,7 +183,6 @@ public class ZeldaUDPServer extends JFrame implements Runnable
 
 		if (playerRolodex[0] == null)
 		{
-			D.Assert(playerRolodex[1] == null, "the other player info in rolodex should be null");
 			playerRolodex[0] = new PlayerInfo(pci);
 			sendResponse("ONE", pci);
 		} else if (playerRolodex[1] == null) {
@@ -216,10 +193,8 @@ public class ZeldaUDPServer extends JFrame implements Runnable
 		}
 	}
 	
-	private void handlePlayerIntroduction(String message, DatagramPacket receivePacket)
+	private void handlePlayerIntroduction(ServerCommunication communication, DatagramPacket receivePacket)
 	{
-		// NOTE: new server communication object streamlines otherwise clunky tasks
-		ServerCommunication communication = ServerCommunication.FromString(message.trim());
 		//RECORD STATS
 		PlayerInfo thisPInfo = getThisPlayerInfoWith(communication.playerIndex);
 		GameStats thisGameStats = communication.gameStats;
@@ -248,10 +223,8 @@ public class ZeldaUDPServer extends JFrame implements Runnable
 		{
 			PlayerInfo thisPInfo = getThisPlayerInfoWith(i);
 			PlayerInfo otherPInfo = getOtherPlayerInfoWith(i);
-			D.Assert(otherPInfo.gameStats.jellyCount == 0, "confusing! non zero jelly count during introduction?");
+
 			if (otherPInfo.gameStats.jellyCount != 0) {
-				D.print("non zero jelly. must die now");
-				writeToPanel("non zero jelly. must die now");
 				System.exit(1);
 			}
 			ServerCommunication toOtherCommunication = new ServerCommunication(OTHER_EXTENDS_INTRO, thisPInfo.gameStats, getOtherIndexWith(i));
@@ -276,125 +249,66 @@ public class ZeldaUDPServer extends JFrame implements Runnable
 		return thisPlayerIndex == 1 ? 0 : 1; 
 	}
 	
-	private String handleCanIMove(String[] msg_parts)
+	private String handleCanIMove(ServerCommunication scomm)
 	{
-		if (msg_parts == null || msg_parts.length < 4)
-		{
-			System.out.println("funky message array in handleCan I move. letting them move anyway");
+		PlayerInfo thisPlayerInfo = getThisPlayerInfoWith(scomm.playerIndex);
+		PlayerInfo otherPlayerInfo = getOtherPlayerInfoWith(scomm.playerIndex); 
+		
+		if (otherPlayerInfo == null || otherPlayerInfo.gameStats == null) {
 			return "YES";
 		}
-		//TODO: replace these communications with a custom
-		// serializable object
-		String xx = msg_parts[1];
-		String yy = msg_parts[2];
-		String playerIndex_string = msg_parts[3];
-		
-		int x;
-		int y;
-		int playerIndex = -1;
-		
-		try {
-			x = Integer.parseInt(xx.trim());
-			y = Integer.parseInt(yy.trim());
-			playerIndex = Integer.parseInt(playerIndex_string.trim());
-		} catch(java.lang.NumberFormatException e) {
-			out.println("Number format exception ...");
-			
-			//TODO: tell other client that other player moved.
-			return "YES"; 
-		}
-		
-		if (playerIndex == -1) {
-			System.out.println("Big problem: no player index in can I move message. exiting. playerIndex string was: " + playerIndex_string);
-			System.exit(1);
-		}
-		PlayerInfo otherPlayerInfo = getOtherPlayerInfoWith(playerIndex); 
-		
-		if (otherPlayerInfo == null || otherPlayerInfo.gameStats == null)
-		{
-			System.out.println("got a null pinfo or pinfo.gameStats");
-			for(String s : msg_parts) System.out.print(" " +s);
-			return "YES";
-		}
-
-		if (mapOccupiedAt(x, y, otherPlayerInfo.gameStats.coord)) {
+		Point2I requestPoint = scomm.someRelevantPoint;
+		if (mapOccupiedAt(requestPoint.x, requestPoint.y, otherPlayerInfo.gameStats.coord)) {
 			return "NO";
 		}
-		PlayerInfo thisPlayerInfo = getThisPlayerInfoWith(playerIndex); 
-		thisPlayerInfo.gameStats.coord = new Point2I(x,y);
+		thisPlayerInfo.gameStats.coord = requestPoint;
 		
 		//tell other client that other player moved.
-		String response = ZeldaUDPServer.OTHER_MOVED + ":" + xx + ":" + yy;
+		scomm.header = OTHER_MOVED;
+		String response = scomm.toString();
 		sendResponse(response, otherPlayerInfo.contactInfo);
 		
-		return "YES";
+		return "YES"; //then tell this client that they can move
 	}
 	
-	private void handleClientGotJelly(String[] msg_parts)
+	private void handleClientGotJelly(ServerCommunication scomm)
 	{
-		String xx = msg_parts[1];
-		String yy = msg_parts[2];
-		String playerIndex_string = msg_parts[3];
-		String jjCount = msg_parts[4];
-
-		int playerIndex = -1;
-		int jellyCount = -1;
-		try {
-			playerIndex = Integer.parseInt(playerIndex_string.trim());
-			jellyCount = Integer.parseInt(jjCount.trim());
-		} catch(java.lang.NumberFormatException e) {
-			out.println("Exception in parse jelly Count string ?...jjCount: " + jjCount);
-		}
+		PlayerInfo thisPlayerInfo = getThisPlayerInfoWith(scomm.playerIndex);
+		PlayerInfo otherPlayerInfo = getOtherPlayerInfoWith(scomm.playerIndex);
 		
-		if (playerIndex == -1) {
-			System.out.println("Big problem: no player index in can I move message. exiting. playerIndex string was: " + playerIndex_string);
-			System.exit(1);
-		}
-
-		PlayerInfo thisPlayerInfo = playerRolodex[playerIndex];
-		PlayerInfo otherPlayerInfo  = playerRolodex[playerIndex == 1 ? 0 : 1];
-		
-		if (thisPlayerInfo == null || thisPlayerInfo.gameStats == null)
-		{
-			System.out.println("got a null pinfo or pinfo.gameStats");
-			for(String s : msg_parts) System.out.print(" " +s);
+		if (thisPlayerInfo == null || thisPlayerInfo.gameStats == null) {
 			return;
 		}
 		
 		if (thisPlayerInfo.gameStats.isVictorious || otherPlayerInfo.gameStats.isVictorious) {
-			D.print("don't add jellies right now. the game is over");
 			return;
 		}
 		
+		int jellyCount = scomm.someIntValue;
 		thisPlayerInfo.gameStats.jellyCount = jellyCount;
 		
 		//tell other player about this
-		String response = ZeldaUDPServer.OTHER_GOT_JELLY + ":" + xx + ":" + yy + ":" + thisPlayerInfo.gameStats.jellyCount;
-		sendResponse(response, otherPlayerInfo.contactInfo);
+		scomm.header = OTHER_GOT_JELLY;
+		sendResponse(scomm.toString(), otherPlayerInfo.contactInfo);
 		
-		capturedJellies++;
+		capturedJellies++; //NOT THE GREATEST WAY TO DO THIS...
 		checkTotalJelly();
 	}
-	
+
 	private void checkTotalJelly()
 	{
 		if (capturedJellies >= initialJellyCount) {
-			D.print("out of jelly reset: captured Jellies: " + capturedJellies + " gr or eq total jellies: " + initialJellyCount);
 			reset();
 		}
 	}
 	
-	private void handleILeftTheGame(String message)
-	{
-		ServerCommunication scomm = ServerCommunication.FromString(message);
+	private void handleILeftTheGame(ServerCommunication scomm) {
 		playerRolodex[scomm.gameStats.playerIndex] = null;
 	}
 	
-	private boolean mapOccupiedAt(int xx, int yy, Point2I otherCoord)
-	{
+	private boolean mapOccupiedAt(int xx, int yy, Point2I otherCoord) {
 		return otherCoord.equal(new Point2I(xx,yy));
 	}
-	
 	
 	private void debugRolodex() {
 		for (PlayerInfo pi : playerRolodex) {
@@ -414,11 +328,7 @@ public class ZeldaUDPServer extends JFrame implements Runnable
 
 	@Override
 	public void run() {
-		// TODO Auto-generated method stub
 		runServer();
 	}
-	
-//	private void ass
-	
 	
 }

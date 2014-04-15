@@ -19,6 +19,12 @@ public class ProtagonistServerDelegate implements IServerRequest
 		serverIP = serverIP_;
 	}
 
+	/*
+	 * Abstracts away the dirty business of asking the server a question
+	 * and getting a response.
+	 * Sends a request string to the server
+	 * and then waits for a response.
+	 */
 	@Override
 	public String requestFromServer(String request) 
 	{
@@ -47,35 +53,25 @@ public class ProtagonistServerDelegate implements IServerRequest
 		sendData = request.getBytes();
 
 		//SEND
-		String response = "";
 		try {
 			DatagramPacket sendPacket = new DatagramPacket(sendData, sendData.length, IPAddress, 9874);
 			clientSocket.send(sendPacket);
 		} catch (IOException e) {
-			System.out.println("Send failed");
+			System.out.println("Send failed. I will die now.");
 			lostConnection = true;
 			e.printStackTrace();
 		}
 		
 		//RECEIVE
+		String response = "";
 		DatagramPacket receivePacket = new DatagramPacket(receiveData, receiveData.length);
 		try {
 			clientSocket.receive(receivePacket);
-		} catch (java.net.SocketTimeoutException toE) {
+		} catch (java.net.SocketTimeoutException e) {
+			e.printStackTrace();
 			System.out.println("Receive failed. yikes.");
-			toE.printStackTrace();
-			
-//			//EXPERIMENTAL??
-//			try {
-//				Thread.sleep(5);
-//			} catch (InterruptedException e) {
-//				// TODO Auto-generated catch block
-//				e.printStackTrace();
-//			}
 			System.out.println("I can't recover from what happened. I will now go away.");
 			lostConnection = true;
-//			return requestFromServer(request); /* just try again */
-			
 		} catch (IOException e) {
 			e.printStackTrace();
 			lostConnection = true;

@@ -2,7 +2,7 @@ package silly;
 
 public class Point2I 
 {
-	int x, y;
+	public int x, y;
 	
 	
 	public Point2I(int xx, int yy)
@@ -24,6 +24,8 @@ public class Point2I
 	}
 	
 	public static Point2I FromString(String pstring){
+		if (pstring == null || pstring.length() == 0)
+			return null;
 		String[] xy = pstring.split(":");
 		int xx = Integer.parseInt(xy[0]);
 		int yy = Integer.parseInt(xy[1]);

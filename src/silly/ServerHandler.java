@@ -1,7 +1,5 @@
 package silly;
 
-import static java.lang.System.out;
-
 import java.io.IOException;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
@@ -15,7 +13,7 @@ public class ServerHandler implements Runnable
 {
 	DatagramSocket listenerSocket = null;
 	public int playerNumber = -1;
-	private String serverIP = ""; // "localhost";
+	private String serverIP = "";
 	private IServerHandlerUpdate updateDelegate;
 	public boolean timeToQuit = false;
 	public HandlerConnectionStatus connectionStatus;
@@ -51,9 +49,10 @@ public class ServerHandler implements Runnable
 	
 	private void doSayHiToServer() 
 	{
+		ServerCommunication hiComm = ServerCommunication.ServerCommunicationWithHeader(ZeldaUDPServer.SAY_HI_REQUEST);
 		String response = "";
 		try {
-			response = requestFromServer(ZeldaUDPServer.SAY_HI_REQUEST ); 
+			response = requestFromServer(hiComm.toString() );
 		} catch (IOException e) {
 			e.printStackTrace();
 			connectionStatus = HandlerConnectionStatus.NO_CONNECTION;
@@ -74,7 +73,6 @@ public class ServerHandler implements Runnable
 				System.out.println("Say response: " + response + "\n too many players in other words");
 				connectionStatus = HandlerConnectionStatus.REJECTED;
 			}
-//			System.exit(1);
 		}
 		System.out.println("Say response: " + response);
 		
@@ -86,7 +84,6 @@ public class ServerHandler implements Runnable
 		byte[] sendData = new byte[1024];
 		byte[] receiveData = new byte[1024];
 		
-		//TODO: rewrite so that this process can time out after a while.
 		sendData = request.getBytes();
 		  
 		//SEND
@@ -108,7 +105,6 @@ public class ServerHandler implements Runnable
 	@Override
 	public void run() 
 	{
-		
 		byte[] receiveData = new byte[1024];
 
 		while(true)
@@ -121,10 +117,9 @@ public class ServerHandler implements Runnable
 			try {
 				listenerSocket.receive(receivePacket);
 			} catch (IOException e) {
-				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
-			String sentence = new String( receivePacket.getData());
+			String sentence = new String(receivePacket.getData());
 			handleServerMessage(sentence);
 
 		}
@@ -139,10 +134,10 @@ public class ServerHandler implements Runnable
 		String[] comm_msg_parts = message.split(ServerCommunication.seperatorHeader);
 		String comm_msg_header = comm_msg_parts[0];
 		
-		if (msg_header.equals(ZeldaUDPServer.OTHER_MOVED)) {
-			handleOtherMoved(msg_parts);
-		} else if (msg_header.equals(ZeldaUDPServer.OTHER_GOT_JELLY)) {
-			handleOtherGotJelly(msg_parts);
+		if (comm_msg_header.equals(ZeldaUDPServer.OTHER_MOVED)) {
+			handleOtherMoved(message);
+		} else if (comm_msg_header.equals(ZeldaUDPServer.OTHER_GOT_JELLY)) {
+			handleOtherGotJelly(message);
 		} else if (msg_header.equals(ZeldaUDPServer.OTHER_ARRIVED)) {
 			handleOtherArrived();
 		} else if (comm_msg_header.equals(ZeldaUDPServer.OTHER_EXTENDS_INTRO)) {
@@ -170,43 +165,17 @@ public class ServerHandler implements Runnable
 		updateDelegate.introduceOther(comm.gameStats);
 	}
 	
-	private void handleOtherMoved(String[] msg_parts)
+	private void handleOtherMoved(String message)
 	{
-		String xx = msg_parts[1];
-		String yy = msg_parts[2];
-		
-		int x = -1;
-		int y = -1;
-		
-		try {
-			x = Integer.parseInt(xx.trim());
-			y = Integer.parseInt(yy.trim());
-		} catch(java.lang.NumberFormatException e) {
-			out.println("Exception...");
-		}
-//		otherPlayerCoord = new Point2I(x,y);
-		updateDelegate.updateOtherCoord(new Point2I(x,y));
+		ServerCommunication comm = ServerCommunication.FromString(message);
+		updateDelegate.updateOtherCoord(comm.someRelevantPoint);
 	}
 	
-	private void handleOtherGotJelly(String[] msg_parts)
+	private void handleOtherGotJelly(String message)
 	{
-		String xx = msg_parts[1];
-		String yy = msg_parts[2];
-		String jjcount = msg_parts[3];
-		
-		int x = -1;
-		int y = -1;
-		int jcount = -1;
-		
-		try {
-			x = Integer.parseInt(xx.trim());
-			y = Integer.parseInt(yy.trim());
-			jcount = Integer.parseInt(jjcount.trim());
-		} catch(java.lang.NumberFormatException e) {
-			out.println("Exception...");
-		}
-
-		updateDelegate.updateOtherJellyCount(jcount);
-		updateDelegate.otherGotJellyAt(new Point2I(x,y));
+		ServerCommunication comm = ServerCommunication.FromString(message);
+		updateDelegate.updateOtherJellyCount(comm.someIntValue);
+		updateDelegate.otherGotJellyAt(comm.someRelevantPoint);
 	}
+
 }

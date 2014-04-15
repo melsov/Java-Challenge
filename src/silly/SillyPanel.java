@@ -7,11 +7,8 @@ import java.awt.Graphics2D;
 import java.awt.Image;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
-import java.awt.event.KeyListener;
 import java.util.HashMap;
-
 import javax.swing.ImageIcon;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
@@ -21,39 +18,6 @@ import silly.server.ServerCommunication;
 
 public class SillyPanel extends JPanel implements ActionListener, IServerHandlerUpdate
 {
-	/**
-	 * 
-	 */
-	private static final long serialVersionUID = 1L;
-	public static final int WIDTH_PIXELS = 700;
-	public static final int HEIGHT_PIXELS = 700;
-	public static final int GUI_FOOTER_HEIGHT = 150;
-	
-	private static int TILE_WIDTH_PIXELS = WIDTH_PIXELS/ZeldaMap.COLUMNS;
-	private static int TILE_HEIGHT_PIXELS = HEIGHT_PIXELS/ZeldaMap.ROWS;
-	
-	private Image canvas; /*off-screen image*/
-	private Graphics cg; /*the graphics of the off-screen image*/
-	
-	private ZeldaMap zeldaMap;
-	private HashMap<Integer, Image> imageLookup = new HashMap<Integer, Image>();
-	
-	private Protagonist protagonist;
-	private ServerHandler serverHandler;
-	
-	private Timer timer;
-	private boolean paused = true;
-	
-	private boolean otherHasArrived = false;
-	
-	private String gameStateString = "PAUSED";
-	private int gameState = 0;
-	
-	private String hostAddress = "localhost";
-	private String nameOfPlayer = "";
-	
-	private boolean sameScreenMode;
-	private boolean isAlsoRunningServer;
 	
 	public SillyPanel(boolean wantSameScreenMode, boolean runningClientAndServer)
 	{
@@ -75,13 +39,31 @@ public class SillyPanel extends JPanel implements ActionListener, IServerHandler
 		gameStateString = "PAUSED";
 		paused = true;
 		otherHasArrived = false;
-		zeldaMap = new ZeldaMap();
 		endThreads();
+		
+		zeldaMap = new ZeldaMap();
 		//CONSIDER: hostAddress is owned by two objects...
 		protagonist = null;
 		serverHandler = null;
 		
-		if (!sameScreenMode && !isAlsoRunningServer)
+		setupServerHandler();
+		
+		setupCanvas();
+		drawTheWholeMap();
+		GUIPainter.PaintGameStateScreen(cg, "WAITING FOR OPPONENT");
+		
+		setupProtagonist(new ProtagonistServerDelegate(hostAddress));
+		
+		Thread t = new Thread(serverHandler);
+		t.start();
+		
+		timer = new Timer(12, this);
+		//WILL START TIME LATER
+	}
+	
+	private void setupServerHandler()
+	{
+		if (!sameScreenMode && !isAlsoRunningServer) // need to ask user for the server name
 		{
 			String problemConnectingString = "";
 			//while they fail to give a ping-able server...
@@ -102,18 +84,6 @@ public class SillyPanel extends JPanel implements ActionListener, IServerHandler
 				System.exit(2);
 			}
 		}
-		
-		setupCanvas();
-		drawTheWholeMap();
-		GUIPainter.PaintGameStateScreen(cg, "WAITING FOR OPPONENT");
-		
-		setupProtagonist(new ProtagonistServerDelegate(hostAddress));
-		
-		Thread t = new Thread(serverHandler);
-		t.start();
-		
-		//START LATER
-		timer = new Timer(12, this);
 	}
 	
 	private void endThreads()
@@ -161,35 +131,16 @@ public class SillyPanel extends JPanel implements ActionListener, IServerHandler
 		CountDown countDown = new CountDown();
 		Thread t = new Thread(countDown);
 		t.start();
-		
-//		startGame();
 	}
 	
 	private static String getGameHandleFromUser(String defaultName)
 	{
-		Frame f = new Frame();
-		f.setSize(400,500);
-		if (defaultName == null || defaultName == "") {
-			defaultName = RandomNameGenerator.GetName();
-		}
-		CustomDialog cd = new CustomDialog(f, "Tell me your name: .............", defaultName);
-		cd.pack();
-		cd.setVisible(true);
-		return cd.getAnswer();
+		return CustomDialog.GetGameHandleFromUser(defaultName);
 	}
 	
 	private static String getServerNameFromUser(String theHostAddress, String problemString)
 	{
-		Frame f = new Frame();
-		f.setSize(400,500);
-		CustomDialog cd = new CustomDialog(f, problemString + 
-				" Tell me the server that you want to connect to (OR 'Q' TO QUIT):", theHostAddress);
-		cd.pack();
-		cd.setVisible(true);
-		if (cd.getAnswer().toLowerCase().equals("q")) {
-			System.exit(2);
-		}
-		return cd.getAnswer();
+		return CustomDialog.GetServerNameFromUser(theHostAddress, problemString);
 	}
 	
 	/*
@@ -398,7 +349,6 @@ public class SillyPanel extends JPanel implements ActionListener, IServerHandler
 		
 	 private class CountDown implements Runnable
 	 {
-
 		@Override
 		public void run() 
 		{
@@ -432,7 +382,6 @@ public class SillyPanel extends JPanel implements ActionListener, IServerHandler
 	@Override
 	public void otherGotJellyAt(Point2I point) {
 		zeldaMap.removeJelly(point.x,point.y);
-		
 	}
 
 	@Override
@@ -443,6 +392,8 @@ public class SillyPanel extends JPanel implements ActionListener, IServerHandler
 
 	@Override
 	public void updateOtherCoord(Point2I point) {
+		if (point == null)
+			return;
 		protagonist.otherStats.coord = point;
 	}
 
@@ -452,6 +403,39 @@ public class SillyPanel extends JPanel implements ActionListener, IServerHandler
 		
 	}
 
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = 1L;
+	public static final int WIDTH_PIXELS = 700;
+	public static final int HEIGHT_PIXELS = 700;
+	public static final int GUI_FOOTER_HEIGHT = 150;
+	
+	private static int TILE_WIDTH_PIXELS = WIDTH_PIXELS/ZeldaMap.COLUMNS;
+	private static int TILE_HEIGHT_PIXELS = HEIGHT_PIXELS/ZeldaMap.ROWS;
+	
+	private Image canvas; /*off-screen image*/
+	private Graphics cg; /*the graphics of the off-screen image*/
+	
+	private ZeldaMap zeldaMap;
+	private HashMap<Integer, Image> imageLookup = new HashMap<Integer, Image>();
+	
+	private Protagonist protagonist;
+	private ServerHandler serverHandler;
+	
+	private Timer timer;
+	private boolean paused = true;
+	
+	private boolean otherHasArrived = false;
+	
+	private String gameStateString = "PAUSED";
+	private int gameState = 0;
+	
+	private String hostAddress = "localhost";
+	private String nameOfPlayer = "";
+	
+	private boolean sameScreenMode;
+	private boolean isAlsoRunningServer;
 
 
 }
