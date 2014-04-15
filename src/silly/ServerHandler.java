@@ -98,8 +98,6 @@ public class ServerHandler implements Runnable
 		try {
 			listenerSocket.receive(receivePacket);
 		} catch(java.net.SocketTimeoutException timeOutE) {
-//			System.out.println("Zelda client server listener didn't hear back from the server promptly. I will die now.");
-//			System.exit(1234);
 			connectionStatus = HandlerConnectionStatus.NO_CONNECTION;
 		}
 		String response = new String(receivePacket.getData());

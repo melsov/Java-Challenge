@@ -12,6 +12,8 @@ public class ProtagonistServerDelegate implements IServerRequest
 	private String serverIP;
 	DatagramSocket clientSocket;
 	
+	private boolean lostConnection;
+	
 	public ProtagonistServerDelegate(String serverIP_)
 	{
 		serverIP = serverIP_;
@@ -27,7 +29,7 @@ public class ProtagonistServerDelegate implements IServerRequest
 			} catch (SocketException e) {
 				e.printStackTrace();
 				System.out.println("AY! no client socket. I will die now");
-				System.exit(1);
+				lostConnection = true;
 			}
 		}
 		
@@ -35,6 +37,7 @@ public class ProtagonistServerDelegate implements IServerRequest
 		try {
 			IPAddress = InetAddress.getByName(serverIP);
 		} catch (UnknownHostException e1) {
+			lostConnection = true;
 			e1.printStackTrace();
 		}
 		byte[] sendData = new byte[1024];
@@ -50,6 +53,7 @@ public class ProtagonistServerDelegate implements IServerRequest
 			clientSocket.send(sendPacket);
 		} catch (IOException e) {
 			System.out.println("Send failed");
+			lostConnection = true;
 			e.printStackTrace();
 		}
 		
@@ -69,11 +73,12 @@ public class ProtagonistServerDelegate implements IServerRequest
 //				e.printStackTrace();
 //			}
 			System.out.println("I can't recover from what happened. I will now go away.");
-			System.exit(1);
+			lostConnection = true;
 //			return requestFromServer(request); /* just try again */
 			
 		} catch (IOException e) {
 			e.printStackTrace();
+			lostConnection = true;
 		}
 		response = new String(receivePacket.getData());
 		return response.trim();
@@ -82,6 +87,11 @@ public class ProtagonistServerDelegate implements IServerRequest
 	@Override
 	public void close() {
 		clientSocket.close();
+	}
+
+	@Override
+	public boolean lostConnection() {
+		return lostConnection;
 	}
 
 }

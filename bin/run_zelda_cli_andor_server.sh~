@@ -27,8 +27,6 @@ if [ "$OPT" -ne 1 ]; then
     read -t1 -n1 -r -p "waiting one seconds..." key
 fi
 if [ "$OPT" -gt 0 ]; then
-    echo "$JPATH -Dfile.encoding=MacRoman -classpath $BINARY_PATH  silly.SillyFrame"
-    exit 0
     $JPATH -Dfile.encoding=MacRoman -classpath $BINARY_PATH  silly.SillyFrame &
     read -t1 -n1 -r -p "waiting one seconds..." key
 fi

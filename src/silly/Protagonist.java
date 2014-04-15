@@ -2,10 +2,13 @@ package silly;
 
 import java.awt.Image;
 import java.awt.event.KeyEvent;
+import java.io.BufferedInputStream;
 import java.io.IOException;
 import javax.sound.sampled.AudioInputStream;
 import javax.sound.sampled.AudioSystem;
 import javax.sound.sampled.Clip;
+
+import org.omg.CORBA.portable.InputStream;
 
 import silly.server.ServerCommunication;
 import silly.server.ZeldaUDPServer;
@@ -45,6 +48,10 @@ public class Protagonist
 	}
 	public void setCoord(Point2I p) {
 		myStats.coord = p;
+	}
+	
+	public boolean lostConnection() {
+		return serverDelegate.lostConnection();
 	}
 	
 	public Image getImage() {
@@ -259,7 +266,8 @@ public class Protagonist
 	
 	private void tellServerILeft() throws IOException
 	{
-		requestFromServer(ZeldaUDPServer.I_LEFT_THE_GAME_REQUEST);
+		sendServerMyStatsWithHeader(ZeldaUDPServer.I_LEFT_THE_GAME_REQUEST);
+//		requestFromServer(ZeldaUDPServer.I_LEFT_THE_GAME_REQUEST);
 	}
 	
 	private String requestFromServer(String request) throws IOException
@@ -311,12 +319,14 @@ public class Protagonist
 		    public void run() {
 		      try {
 		        Clip clip = AudioSystem.getClip();
-		        AudioInputStream inputStream = AudioSystem.getAudioInputStream(
-
-        		this.getClass().getResourceAsStream(url));		        		
+		        java.io.InputStream audioSrc = this.getClass().getResourceAsStream(url);
+		        BufferedInputStream bufferedInput = new BufferedInputStream(audioSrc);
+		        AudioInputStream inputStream = AudioSystem.getAudioInputStream(bufferedInput);
+		        
 		        clip.open(inputStream);
 		        clip.start(); 
 		      } catch (Exception e) {
+		    	  
 		        System.err.println(e.getMessage());
 		      }
 		    }

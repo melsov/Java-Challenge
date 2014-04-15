@@ -77,11 +77,11 @@ public class SillyPanel extends JPanel implements ActionListener, IServerHandler
 		//CONSIDER: hostAddress is owned by two objects...
 		protagonist = null;
 		serverHandler = null;
-		//TODO: while they fail to give a ping-able server...
 		
 		if (!sameScreenMode)
 		{
 			String problemConnectingString = "";
+			//while they fail to give a ping-able server...
 			while(serverHandler == null || serverHandler.connectionStatus != HandlerConnectionStatus.ACCEPTED)
 			{
 				hostAddress = getServerNameFromUser(problemConnectingString);
@@ -108,7 +108,6 @@ public class SillyPanel extends JPanel implements ActionListener, IServerHandler
 		
 		Thread t = new Thread(serverHandler);
 		t.start();
-//		serverHandlerThread = t;
 		
 		//START LATER
 		timer = new Timer(12, this);
@@ -135,8 +134,7 @@ public class SillyPanel extends JPanel implements ActionListener, IServerHandler
 	
 	private void pauseGame()
 	{
-		if (!paused)
-		{
+		if (!paused) {
 			paused = true;
 		}
 	}
@@ -146,10 +144,7 @@ public class SillyPanel extends JPanel implements ActionListener, IServerHandler
 		otherHasArrived = true;
 		if (protagonist != null) {
 			protagonist.otherHasArrived();
-		} else {
-			D.print("protag is null yet other has arrived already?");
-//			System.exit(1);
-		}
+		} 
 	}
 	
 	public GameStats playerGameStats() {
@@ -208,6 +203,7 @@ public class SillyPanel extends JPanel implements ActionListener, IServerHandler
 		//change stuff about the game
 		checkWonOrLost();
 		drawEverything();
+		checkConnections();
 	}
 	
 	private void checkWonOrLost()
@@ -234,6 +230,15 @@ public class SillyPanel extends JPanel implements ActionListener, IServerHandler
 		}
 	}
 	
+	private void checkConnections()
+	{
+		if (protagonist.lostConnection())
+		{
+			D.print("protag lost connection. leaving now...");
+			System.exit(10);
+		}
+	}
+	
 	private void drawEverything()
 	{
 		drawTheWholeMap();
@@ -251,12 +256,6 @@ public class SillyPanel extends JPanel implements ActionListener, IServerHandler
 
 		GUIPainter.PaintResultsForBoth(cg, protagonist.myStats, protagonist.otherStats);
 
-	}
-	
-	private void updateMap(int x, int y, int tile_type)
-	{
-		zeldaMap.set(x, y, tile_type);
-		drawTileAt(x,y);
 	}
 	
 	private void setupCanvas()

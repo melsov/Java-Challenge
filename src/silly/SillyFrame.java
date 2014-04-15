@@ -7,6 +7,8 @@ import java.awt.event.KeyListener;
 
 import javax.swing.JFrame;
 
+import silly.server.ZeldaUDPServer;
+
 //import silly.SillyPanel.MyKeyAdapter;
 
 /*
@@ -57,12 +59,24 @@ public class SillyFrame extends JFrame
 	
 	private SillyPanel panel1;
 	private SillyPanel panel2;
+	private ZeldaUDPServer zeldaServer;
 	
 	private boolean sameScreenMode = false;
 
 	public SillyFrame()
 	{
 		sameScreenMode = getWantsSameScreenMode();
+		boolean runServerAlso = sameScreenMode;
+		if (!runServerAlso) {
+			runServerAlso = getWantsClientAndServer();
+		}
+		
+		if (runServerAlso) {
+			zeldaServer = new ZeldaUDPServer();
+			Thread t = new Thread(zeldaServer);
+			t.start();
+		}
+		
 		panel1 = new SillyPanel(sameScreenMode);
 		add(panel1);
 		if (sameScreenMode)
@@ -85,12 +99,24 @@ public class SillyFrame extends JFrame
 		Frame f = new Frame();
 		f.setSize(400,500);
 		String network = "NETWORK";
-		CustomDialog cd = new CustomDialog(f, "Are you playing on network? If so, hit return. If not type 'no' (for two players on one computer)", network);
+		CustomDialog cd = new CustomDialog(f, "Do you want to play over a network? If so, hit return. If not type 'no' (for two players, one computer)", network);
 		cd.pack();
 		cd.setVisible(true);
 		String answer = cd.getAnswer();
 		return !answer.equals(network);
 	}
+	
+	private boolean getWantsClientAndServer()
+	{
+		Frame f = new Frame();
+		f.setSize(400,500);
+		String network = "CLIENT AND SERVER";
+		CustomDialog cd = new CustomDialog(f, "Want to host this game? (just hit return). To connect to another server, type any key and then hit return. ", network);
+		cd.pack();
+		cd.setVisible(true);
+		String answer = cd.getAnswer();
+		return answer.equals(network);
+	}	
 	
 	public static void main(String[] args)
 	{

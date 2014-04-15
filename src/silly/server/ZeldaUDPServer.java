@@ -13,7 +13,7 @@ import silly.Point2I;
 import silly.PlayerContactInfo;
 import silly.PlayerInfo;
 
-public class ZeldaUDPServer extends JFrame
+public class ZeldaUDPServer extends JFrame implements Runnable
 {
 	/**
 	 * 
@@ -39,7 +39,6 @@ public class ZeldaUDPServer extends JFrame
 	public static String OTHER_GOT_JELLY = "OTHERGOTJELLY";
 	public static String TIME_TO_START_THE_GAME = "STARTTHEGAME";
 	
-	private int playerCount = 0;
 	private PlayerInfo[] playerRolodex = new PlayerInfo[2];
 	
 	private DatagramSocket serverSocket;
@@ -84,6 +83,11 @@ public class ZeldaUDPServer extends JFrame
 	{	
 		ZeldaUDPServer zeldaserver = new ZeldaUDPServer();
 		
+		zeldaserver.runServer();
+	}
+	
+	private void runServer()
+	{
 		byte[] receiveData = new byte[1024];
 		
 		while(true)
@@ -91,14 +95,18 @@ public class ZeldaUDPServer extends JFrame
 			receiveData = new byte[1024]; //wipe out any old data
 			//RECEIVE
 			DatagramPacket receivePacket = new DatagramPacket(receiveData, receiveData.length);
-			zeldaserver.serverSocket.receive(receivePacket);
+			try {
+				this.serverSocket.receive(receivePacket);
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
 			String sentence = new String( receivePacket.getData());
 
-			zeldaserver.writeToPanel("Received: " + sentence + "\n");
+			this.writeToPanel("Received: " + sentence + "\n");
 			
 			//SEND
-			String response = zeldaserver.handleClientQuery(sentence, receivePacket);
-			zeldaserver.sendResponse(response, receivePacket.getAddress(), receivePacket.getPort());
+			String response = this.handleClientQuery(sentence, receivePacket);
+			this.sendResponse(response, receivePacket.getAddress(), receivePacket.getPort());
        }
 	}
 	
@@ -131,19 +139,15 @@ public class ZeldaUDPServer extends JFrame
 		D.print("Client query message: " + message);
 		if (msg_header.equals(MOVE_REQUEST)) {
 			return handleCanIMove(msg_parts);
-		}
-//		else if (msg_header.equals(WHICH_PLAYER_REQUEST)) {
-//			return handleWhichPlayerAmI();
-//		}
-		else if (msg_header.equals(I_LEFT_THE_GAME_REQUEST)) {
-			handleILeftTheGame();
-		}else if (msg_header.equals(SAY_HI_REQUEST)) {
+		} else if (scomm_msg_header.equals(I_LEFT_THE_GAME_REQUEST)) {
+			handleILeftTheGame(message);
+		} else if (msg_header.equals(SAY_HI_REQUEST)) {
 			handleClientSaysHi(receivePacket);
 		} else if (msg_header.equals(I_GOT_JELLY)) {
 			handleClientGotJelly(msg_parts);
 		} else if (scomm_msg_header.equals(INTRODUCTION_REQUEST)) {
 			handlePlayerIntroduction(message, receivePacket);
-		}  else if (scomm_msg_header.equals(STATE_CHANGED_REQUEST)) {
+		} else if (scomm_msg_header.equals(STATE_CHANGED_REQUEST)) {
 			passServerCommunicationToOther(message);
 		} else if (scomm_msg_header.equals(I_WON_REQUEST)) {
 			handleIWon(message);
@@ -162,8 +166,6 @@ public class ZeldaUDPServer extends JFrame
 			D.print("RESETTING ROLODEX");
 			playerRolodex = new PlayerInfo[2];
 		}
-		if (playerCount == 2) //player count now useless - ish
-			playerCount = 0;
 		
 		capturedJellies = 0;
 		writeToPanel("SOMEBODY WON. OR ALL JELLIES WERE TAKEN");
@@ -200,18 +202,14 @@ public class ZeldaUDPServer extends JFrame
 		InetAddress IPAddress = receivePacket.getAddress();
 		int port = receivePacket.getPort();
 		PlayerContactInfo pci = new PlayerContactInfo(IPAddress, port);
-		
-//		if (playerCount == 0)
+
 		if (playerRolodex[0] == null)
 		{
 			D.Assert(playerRolodex[1] == null, "the other player info in rolodex should be null");
 			playerRolodex[0] = new PlayerInfo(pci);
-			playerCount++;
 			sendResponse("ONE", pci);
-//		} else if (playerCount == 1) {
 		} else if (playerRolodex[1] == null) {
 			playerRolodex[1] = new PlayerInfo(pci);
-			playerCount++;
 			announcePlayerArrivals();
 		} else {
 			sendResponse("NEITHER", pci);
@@ -386,22 +384,10 @@ public class ZeldaUDPServer extends JFrame
 		}
 	}
 	
-//	private String handleWhichPlayerAmI()
-//	{
-//		if (playerCount == 0) {
-//			playerCount++;
-//			return "ONE";
-//		} else if (playerCount == 1) {
-//			playerCount++;
-//			return "TWO";
-//		}
-//		return "NEITHER";
-//	}
-	
-	private void handleILeftTheGame()
+	private void handleILeftTheGame(String message)
 	{
-		playerCount--;
-		playerCount = playerCount < 0 ? 0 : playerCount;
+		ServerCommunication scomm = ServerCommunication.FromString(message);
+		playerRolodex[scomm.gameStats.playerIndex] = null;
 	}
 	
 	private boolean mapOccupiedAt(int xx, int yy, Point2I otherCoord)
@@ -424,6 +410,12 @@ public class ZeldaUDPServer extends JFrame
 			return;
 		}
 		D.print(pi.debugString());
+	}
+
+	@Override
+	public void run() {
+		// TODO Auto-generated method stub
+		runServer();
 	}
 	
 //	private void ass
