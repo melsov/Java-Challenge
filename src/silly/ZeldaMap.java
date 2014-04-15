@@ -2,24 +2,7 @@ package silly;
 
 public class ZeldaMap 
 {
-	public static int COLUMNS = 30;
-	public static int ROWS = 30;
-	
-	private int [][] tiles = new int[COLUMNS][ROWS];
-	private int [][] jellyMap = new int[COLUMNS][ROWS];
-	
-	public static final int WALL = 431;
-	public static final int GROUND = 432;
-	public static final int DOOR_NORTH = 433;
-	
-	public static final int RED_JELLY = 243;
-	private int jellyCount = 0;
-	
-	private Point2I spawnPlayerOnePoint = new Point2I(1,ROWS - 2);
-	private Point2I spawnPlayerTwoPoint = new Point2I(COLUMNS - 2,ROWS - 2);
-	
-	private static final int VERTICAL_CENTER = ROWS/2;
-	private static final int HORIZONTAL_CENTER = COLUMNS/2;
+	//FINDE MEM VARS AT BOTTOM OF FILE...
 	
 	public ZeldaMap()
 	{
@@ -47,16 +30,20 @@ public class ZeldaMap
 		}
 	}
 	
-	private boolean isWallAt(int i, int j) {
+	private boolean isWallAt(int i, int j) 
+	{
 		if (i == 0 || j == 0 || i == COLUMNS - 1 || j == ROWS - 1) // ON THE BORDER
 			return true;
+		
+		//HORSE-SHOE SHAPED WALL
 		int distR = Math.abs(VERTICAL_CENTER - j);
 		int distC = Math.abs(HORIZONTAL_CENTER - i);
-		//HORSE-SHOE SHAPED WALL
-		if (((int)Math.sqrt((distR*distR + distC*distC)) == VERTICAL_CENTER - 5) && //DIST TO CENTER == SOME RADIUS AND...
+		int distToCenter = (int) Math.sqrt(distR*distR + distC*distC);  
+		if (( distToCenter== VERTICAL_CENTER - 5) && //DIST TO CENTER == SOME RADIUS AND...
 				(Math.abs(i - HORIZONTAL_CENTER) > 2 || j > VERTICAL_CENTER))      //NOT IN THE '12 O'CLOCK' REGION
 			return true;
 		
+		//WALL AROUND THE DOOR
 		return (distC == 1 && j == VERTICAL_CENTER )  || (j - VERTICAL_CENTER == -1 && distC <= 1);
 	}
 	
@@ -74,7 +61,8 @@ public class ZeldaMap
 					//jelly in a circle formation
 					int distR = Math.abs(VERTICAL_CENTER - j);
 					int distC = Math.abs(HORIZONTAL_CENTER - i);
-					if ((int)Math.sqrt((distR*distR + distC*distC)) == VERTICAL_CENTER - 3)
+					int distToCenter = (int) Math.sqrt(distR*distR + distC*distC);
+					if (distToCenter == VERTICAL_CENTER - 3)
 					{
 						jelly_column[j] = RED_JELLY;
 						jellyCount++;
@@ -125,4 +113,23 @@ public class ZeldaMap
 			return spawnPlayerOnePoint;
 		return spawnPlayerTwoPoint;
 	}
+	
+	private int [][] tiles = new int[COLUMNS][ROWS];
+	private int [][] jellyMap = new int[COLUMNS][ROWS];
+	
+	public static int COLUMNS = 30;
+	public static int ROWS = 30;
+	private static int VERTICAL_CENTER = ROWS/2;
+	private static int HORIZONTAL_CENTER = COLUMNS/2;
+	
+	public static final int WALL = 431;
+	public static final int GROUND = 432;
+	public static final int DOOR_NORTH = 433;
+	public static final int RED_JELLY = 243;
+	
+	private int jellyCount = 0;
+	
+	private Point2I spawnPlayerOnePoint = new Point2I(1,ROWS - 2);
+	private Point2I spawnPlayerTwoPoint = new Point2I(COLUMNS - 2,ROWS - 2);
+	
 }
