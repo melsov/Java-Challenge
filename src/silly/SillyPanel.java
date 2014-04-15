@@ -234,8 +234,6 @@ public class SillyPanel extends JPanel implements ActionListener, IServerHandler
 			gameStateString = result_string;
 			paused = true;
 			gameState = winlosestate;
-//			if (winlosestate == 3)
-//				protagonist.endGameOnServer(); //hack
 		}
 	}
 	
@@ -253,7 +251,8 @@ public class SillyPanel extends JPanel implements ActionListener, IServerHandler
 		drawTheWholeMap();
 		drawOther();
 		drawProtagonist();
-		GUIPainter.PaintGameInfo(cg, protagonist.myStats, protagonist.otherStats);
+		PlayerInfoPack infoPack = new PlayerInfoPack(protagonist, isAlsoRunningServer);
+		GUIPainter.PaintGameInfo(cg, infoPack); 
 	}
 	
 	private void doPausedRelatedStuff()

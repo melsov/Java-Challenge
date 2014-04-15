@@ -18,6 +18,9 @@ public class ZeldaMap
 	private Point2I spawnPlayerOnePoint = new Point2I(1,ROWS - 2);
 	private Point2I spawnPlayerTwoPoint = new Point2I(COLUMNS - 2,ROWS - 2);
 	
+	private static final int VERTICAL_CENTER = ROWS/2;
+	private static final int HORIZONTAL_CENTER = COLUMNS/2;
+	
 	public ZeldaMap()
 	{
 		setupTiles();
@@ -31,10 +34,10 @@ public class ZeldaMap
 			int[] tile_column = tiles[i];
 			for(int j = 0; j < tile_column.length; ++j)
 			{
-				if (i == COLUMNS/2 && j == 0)
+				if (i == HORIZONTAL_CENTER && j == VERTICAL_CENTER)
 				{
 					tile_column[j] = DOOR_NORTH;
-				} else if (i == 0 || j == 0 || i == COLUMNS - 1 || j == ROWS - 1)
+				} else if (isWallAt(i,j))
 				{
 					tile_column[j] = WALL;
 				} else {
@@ -42,6 +45,19 @@ public class ZeldaMap
 				}
 			}
 		}
+	}
+	
+	private boolean isWallAt(int i, int j) {
+		if (i == 0 || j == 0 || i == COLUMNS - 1 || j == ROWS - 1) // ON THE BORDER
+			return true;
+		int distR = Math.abs(VERTICAL_CENTER - j);
+		int distC = Math.abs(HORIZONTAL_CENTER - i);
+		//HORSE-SHOE SHAPED WALL
+		if (((int)Math.sqrt((distR*distR + distC*distC)) == VERTICAL_CENTER - 5) && //DIST TO CENTER == SOME RADIUS AND...
+				(Math.abs(i - HORIZONTAL_CENTER) > 2 || j > VERTICAL_CENTER))      //NOT IN THE '12 O'CLOCK' REGION
+			return true;
+		
+		return (distC == 1 && j == VERTICAL_CENTER )  || (j - VERTICAL_CENTER == -1 && distC <= 1);
 	}
 	
 	private void setupJellyMap()
@@ -56,11 +72,9 @@ public class ZeldaMap
 				if (tile_type == GROUND)
 				{
 					//jelly in a circle formation
-					int halfR = ROWS/2;
-					int halfC = COLUMNS/2;
-					int distC = Math.abs(halfC - i);
-					int distR = Math.abs(halfR - j);
-					if ((int)Math.sqrt((distC*distC + distR*distR)) == halfR - 3)
+					int distR = Math.abs(VERTICAL_CENTER - j);
+					int distC = Math.abs(HORIZONTAL_CENTER - i);
+					if ((int)Math.sqrt((distR*distR + distC*distC)) == VERTICAL_CENTER - 3)
 					{
 						jelly_column[j] = RED_JELLY;
 						jellyCount++;

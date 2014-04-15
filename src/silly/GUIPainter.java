@@ -14,9 +14,12 @@ public class GUIPainter
 	private static final int LARGE_FONT_SIZE = 18;
 	private static final int SMALL_FONT_SIZE = 14;
 	
-	public static void PaintGameInfo(Graphics cg, GameStats playerStats, GameStats otherStats)
+	public static void PaintGameInfo(Graphics cg, PlayerInfoPack infoPack) // GameStats playerStats, GameStats otherStats)
 	{
 		Graphics2D g = (Graphics2D )cg;
+		
+		GameStats playerStats = infoPack.clientAndServerStats;
+		GameStats otherStats = infoPack.justClientStats;
 		
 		g.setColor(Color.BLUE);
 		clearGuiArea(g);
