@@ -18,7 +18,6 @@ import silly.server.ServerCommunication;
 
 public class SillyPanel extends JPanel implements ActionListener, IServerHandlerUpdate
 {
-	
 	public SillyPanel(boolean wantSameScreenMode, boolean runningClientAndServer)
 	{
 		sameScreenMode = wantSameScreenMode;

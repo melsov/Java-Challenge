@@ -2,7 +2,7 @@ package silly;
 
 public class ZeldaMap 
 {
-	//FINDE MEM VARS AT BOTTOM OF FILE...
+	//MEM VARS AT BOTTOM OF FILE...
 	
 	public ZeldaMap()
 	{
@@ -20,10 +20,13 @@ public class ZeldaMap
 				if (i == HORIZONTAL_CENTER && j == VERTICAL_CENTER)
 				{
 					tile_column[j] = DOOR_NORTH;
-				} else if (isWallAt(i,j))
+				} 
+				else if (isWallAt(i,j))
 				{
 					tile_column[j] = WALL;
-				} else {
+				} 
+				else 
+				{
 					tile_column[j] = GROUND;
 				}
 			}
@@ -32,7 +35,8 @@ public class ZeldaMap
 	
 	private boolean isWallAt(int i, int j) 
 	{
-		if (i == 0 || j == 0 || i == COLUMNS - 1 || j == ROWS - 1) // ON THE BORDER
+		// ON THE BORDER
+		if (i == 0 || j == 0 || i == COLUMNS - 1 || j == ROWS - 1) 
 			return true;
 		
 		//HORSE-SHOE SHAPED WALL
@@ -108,7 +112,6 @@ public class ZeldaMap
 	}
 	
 	public Point2I spawnPointForPlayer(int playerNum) {
-		//TODO: acutally check which player we are.
 		if (playerNum == 0)
 			return spawnPlayerOnePoint;
 		return spawnPlayerTwoPoint;
