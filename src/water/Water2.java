@@ -24,6 +24,8 @@ public class Water2 extends Applet implements ActionListener,KeyListener{
 	 */
 	private static final long serialVersionUID = 1L;
 	List<Drop> drops = new ArrayList<Drop>();
+	List<Box> boxes = new ArrayList<Box>();
+	
 	public static Timer animate;
 	Line2D line = new Line2D.Double();
 	public double MX;
@@ -44,16 +46,31 @@ public class Water2 extends Applet implements ActionListener,KeyListener{
 		g.clearRect(0, 0, 1280, 675);
 		superAngle=getAngle(640,674,MX,MY);
 		newDrop(640,674);
+		drawBoxes(g);
 		fillWater(g);
 		drawWater(g);
-		debug(true);
+		
+//		debug(true);
 	}
 
 	public void init(){
+		setupBoxes();
 		animate = new Timer(25,this);
 		setSize(1280,675);
 		animate.start();
 		addKeyListener(this);
+	}
+	
+	private void setupBoxes() {
+		Box b1 = new Box(new Pointt(100, 300), new Pointt(50, 200));
+		boxes.add(b1);
+	}
+	
+	private void drawBoxes(Graphics2D g) {
+		for(Box b : boxes) {
+			g.setPaint(Color.DARK_GRAY);
+			g.fill(b.getRectangle());
+		}
 	}
 
 	@Override
@@ -118,14 +135,16 @@ public class Water2 extends Applet implements ActionListener,KeyListener{
 		for(int i=0;i<l;i++)
 		{
 			Drop d = drops.get(i);
+			if (collidedWithABox(d)) {
+				d.youCollidedWithSomething();
+			}
 			p1.setLocation(d.Xloc, d.Yloc);
 			p2.setLocation(d.Xloc + d.Xvel,  d.Yloc + d.Yvel);
 			line.setLine(p1,p2);
 			g.draw(line);
-//		d.Xloc.set(d,d.Xloc + d.Xvel);
+
 			d.Xloc+=d.Xvel;
 			d.Yloc+=d.Yvel;
-//			d.Yvel-=2;
 			d.Yvel+=2;
 			if(d.Yloc>waterHeight){
 			if(0<d.Yvel){
@@ -134,10 +153,20 @@ public class Water2 extends Applet implements ActionListener,KeyListener{
 				deleted++;
 				waterHeight-=0.25;
 			}}
-		l=drops.size();
+			l=drops.size();
 		}
 	}
 
+	public boolean collidedWithABox(Drop d) 
+	{
+		for (Box b : boxes) {
+			Pointt p = new Pointt(d.Xloc, d.Yloc);
+			if (b.isWithin(p)) {
+				return true;
+			}
+		}
+		return false;
+	}
 
 
 	public void debug(boolean debug){

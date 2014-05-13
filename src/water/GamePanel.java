@@ -13,15 +13,11 @@ import javax.swing.JPanel;
 
 public class GamePanel extends JPanel implements ActionListener
 {
-	/**
-	 * 
-	 */
 	private static final long serialVersionUID = 1L;
+	private Keys keysLi = new Keys();
 
-	public GamePanel()
-	{
+	public GamePanel() {
 		//Game panel is born.
-		
 	}
 	
 	public void addNotify()
@@ -37,8 +33,10 @@ public class GamePanel extends JPanel implements ActionListener
 		
 		Timer t = new Timer(50, this);
 		t.start();
+		
+		addKeyListener(keysLi);
+		setFocusable(true);
 	}
-	
 	public void paint(Graphics graphics)
 	{
 		Graphics2D g = (Graphics2D) graphics;
@@ -46,10 +44,8 @@ public class GamePanel extends JPanel implements ActionListener
 		g.setPaint(Color.RED);
 		g.draw(e);
 	}
-
 	@Override
-	public void actionPerformed(ActionEvent e) 
-	{
-		System.out.print("Action performed was called.");
+	public void actionPerformed(ActionEvent e) {
+//		System.out.print("Action performed was called.");
 	}
 }

@@ -1,9 +1,11 @@
 package water;
 
 import javax.swing.JFrame;
+import static java.lang.System.out;
 
 public class DumbFrame extends JFrame 
 {
+	private static int T = 4;
 	public DumbFrame()
 	{
 		System.out.println("DumbFrame comes into existence in the world!! \n My main job is to add a JPanel (GamePanel) to myself.");
@@ -23,6 +25,9 @@ public class DumbFrame extends JFrame
         setVisible(true);
         setResizable(false);
 		
-		
+        int K=6;
+        out.println(K);
+		K = 5;
+		out.println(K);
 	}
 }

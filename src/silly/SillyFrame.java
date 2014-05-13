@@ -1,6 +1,8 @@
 package silly;
 
 import java.awt.Frame;
+import java.awt.GraphicsDevice;
+import java.awt.GraphicsEnvironment;
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
@@ -68,6 +70,8 @@ public class SillyFrame extends JFrame
 	private ImageIcon linkIcon;
 	private ImageIcon demonLinkIcon;
 
+	private boolean fullscreen;
+
 	public SillyFrame()
 	{
 		linkIcon = getImageIcon("normalLink.png");
@@ -103,6 +107,7 @@ public class SillyFrame extends JFrame
         setLocationRelativeTo(null);
         setVisible(true);
         setResizable(true);
+        this.setFullScreen();
 	}
 	
 	private boolean getWantsSameScreenMode()
@@ -204,4 +209,35 @@ public class SillyFrame extends JFrame
         }
 
 	}
+	
+	public void setFullScreen() {   
+        if (!this.fullscreen) {
+//            size = this.getSize();
+//            if (this.parent == null) {
+//                this.parent = getParent();
+//            }
+//            this.frame = new Frame();
+//            this.frame.setUndecorated(true);
+//            this.frame.add(this);
+//            this.frame.setVisible(true);
+
+            GraphicsEnvironment ge = GraphicsEnvironment.getLocalGraphicsEnvironment();
+            GraphicsDevice[] devices = ge.getScreenDevices();
+//            devices[0].setFullScreenWindow(this.frame);
+            devices[0].setFullScreenWindow(this);
+            this.fullscreen = true;
+        } 
+        else {
+//            if (this.parent != null) {
+//                this.parent.add(this);
+//            }
+//            if (this.frame != null) {
+//                this.frame.dispose();
+//            }
+//            this.fullscreen = false;
+////            this.setSize(size);
+//            this.revalidate();
+        }       
+        this.requestFocus();
+    }
 }

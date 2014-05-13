@@ -41,6 +41,10 @@ public class Water extends Applet implements ActionListener,KeyListener{
 	double waterHeight = 675;
 	boolean space;
 	
+	private Keys keys = new Keys();
+	private Keys otherKeys = new Keys();
+	
+	private Timer otherTimer;
 	
 	public void paint(Graphics g2)
 	{
@@ -54,20 +58,42 @@ public class Water extends Applet implements ActionListener,KeyListener{
 	}
 
 	public void init(){
-		animate = new Timer(25,this);
 		setSize(1280,675);
+		
+		animate = new Timer(25,this);
+		otherTimer = new Timer(100,this);
 		animate.start();
-		addKeyListener(this);
+		otherTimer.start();
+//		addKeyListener(this);
+		addKeyListener(keys);
+		
 	}
 
 	@Override
-	public void actionPerformed(ActionEvent arg0) 
+	public void actionPerformed(ActionEvent e) 
 	{
+//		if (e.getSource() == otherTimer) {
+//			System.out.println("got an event from the other timer");
+//			// ... do other timer stuff
+//			
+//			// now we should probably leave the actionPerformed method
+//			// unless there's stuff that we want to do when either
+//			// timer fires.
+//			return; 
+//		} else {
+//			System.out.println("got an event from the animate timer");
+//		}
+		
+		if (Keys.Apress) {
+			System.out.println("a is down");
+		}
+		
 		Point point = MouseInfo.getPointerInfo().getLocation();
 		MX = point.getX();
 		MY = point.getY();
 		repaint();	
 	}
+
 
 	public void newDrop(double Sx,double Sy)
 	{
@@ -128,14 +154,14 @@ public class Water extends Applet implements ActionListener,KeyListener{
 			Yloc.set(i,Yloc.get(i) + Yvel.get(i));
 			Yvel.set(i,Yvel.get(i)+ 2);
 			if(Yloc.get(i)>waterHeight){
-			if(0<Yvel.get(i)){
-			Yloc.remove(i);
-			Xloc.remove(i);
-			Yvel.remove(i);
-			Xvel.remove(i);
-			i--;
-			deleted++;
-			waterHeight-=0.25;
+				if(0<Yvel.get(i)){
+				Yloc.remove(i);
+				Xloc.remove(i);
+				Yvel.remove(i);
+				Xvel.remove(i);
+				i--;
+				deleted++;
+				waterHeight-=0.25;
 			}}
 		l=Xvel.size();
 		}
@@ -143,11 +169,11 @@ public class Water extends Applet implements ActionListener,KeyListener{
 
 	public void debug(boolean debug){
 		frames++;
-		System.out.print(frames + " = frame number | ");
-		System.out.print("list size: "+ Xloc.size()+ " | ");
-		System.out.print("new drops = " + added + " | deleted drops = " + deleted + " | " );
-		System.out.print("water level: " + (675-waterHeight) + "(" + waterHeight + ") | " );
-		System.out.println("end of frame.");
+//		System.out.print(frames + " = frame number | ");
+//		System.out.print("list size: "+ Xloc.size()+ " | ");
+//		System.out.print("new drops = " + added + " | deleted drops = " + deleted + " | " );
+//		System.out.print("water level: " + (675-waterHeight) + "(" + waterHeight + ") | " );
+//		System.out.println("end of frame.");
 		added=0;
 		deleted=0;
 		
@@ -156,6 +182,9 @@ public class Water extends Applet implements ActionListener,KeyListener{
 	public void fillWater(Graphics2D g){
 		g.setPaint(Color.cyan);
 		g.setStroke(new BasicStroke(1));
+		
+		if (keys.Apress) return;
+		
 		for(double i = 675; i>waterHeight-1;i-=0.25){
 			line.setLine(0,i,1280,i);
 			g.draw(line);	
@@ -164,11 +193,12 @@ public class Water extends Applet implements ActionListener,KeyListener{
 
 	@Override
 	public void keyPressed(KeyEvent e) {
+		System.out.println("Water class got a key");
 		int pressed = e.getKeyCode();
 		if(pressed == KeyEvent.VK_SPACE){
-			waterHeight+=10;
+				waterHeight+=10;
 			if(waterHeight>675){
-			waterHeight=675;	
+				waterHeight=675;	
 			}
 		}
 		
