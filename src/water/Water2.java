@@ -7,11 +7,14 @@ import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.MouseInfo;
 import java.awt.Point;
+import java.awt.RenderingHints;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
+import java.awt.geom.Ellipse2D;
 import java.awt.geom.Line2D;
+import java.awt.geom.Line2D.Double;
 import java.awt.geom.Point2D;
 import java.util.ArrayList;
 import java.util.List;
@@ -25,6 +28,8 @@ public class Water2 extends Applet implements ActionListener,KeyListener{
 	private static final long serialVersionUID = 1L;
 	List<Drop> drops = new ArrayList<Drop>();
 	List<Box> boxes = new ArrayList<Box>();
+	
+	List<Line2D.Double> obstacles = new ArrayList<Line2D.Double>();
 	
 	public static Timer animate;
 	Line2D line = new Line2D.Double();
@@ -43,10 +48,16 @@ public class Water2 extends Applet implements ActionListener,KeyListener{
 	public void paint(Graphics g2)
 	{
 		Graphics2D g = (Graphics2D) g2;
+//		g.setRenderingHint(RenderingHints.KEY_ANTIALIASING , RenderingHints.VALUE_ANTIALIAS_ON);
 		g.clearRect(0, 0, 1280, 675);
+		g.setPaint(Color.GREEN);
+		
+//		g.fill(new Ellipse2D.Double(20,20, 300, 400));
+		
 		superAngle=getAngle(640,674,MX,MY);
 		newDrop(640,674);
-		drawBoxes(g);
+//		drawBoxes(g);
+		drawObstacles(g);
 		fillWater(g);
 		drawWater(g);
 		
@@ -54,7 +65,8 @@ public class Water2 extends Applet implements ActionListener,KeyListener{
 	}
 
 	public void init(){
-		setupBoxes();
+//		setupBoxes();
+		setupObstacles();
 		animate = new Timer(25,this);
 		setSize(1280,675);
 		animate.start();
@@ -66,10 +78,42 @@ public class Water2 extends Applet implements ActionListener,KeyListener{
 		boxes.add(b1);
 	}
 	
+	private void setupObstacles() {
+//		Line2D.Double l1 = new Line2D.Double(new Point2D.Double(100, 300), new Point2D.Double(50, 200));
+//		obstacles.add(l1);
+//		Line2D.Double l2 = new Line2D.Double( new Point2D.Double(100, 200), new Point2D.Double(50, 300));
+//		obstacles.add(l2);
+//		Line2D.Double l3 = new Line2D.Double( new Point2D.Double(750, 200), new Point2D.Double(600, 300));
+//		obstacles.add(l3);
+		
+		int nudgeX = 0;
+		double cols = 10.0;
+		double rows = 10.0;
+		for (int i = 0; i < (int) cols; ++i) 
+		{
+			for(int j = 0; j < (int) rows; ++j) 
+			{
+				//Make an interesting array of diagonals
+				Line2D.Double l = new Line2D.Double(new Point2D.Double(i * 100 +nudgeX, j * 50), 
+						new Point2D.Double(i * 100 + nudgeX + 55 * Math.cos((i*1.5/cols) * Math.PI), j * 50 + 35 ));
+				obstacles.add(l);
+				nudgeX += 25;
+			}
+			nudgeX = 0;
+		}
+	}
+	
 	private void drawBoxes(Graphics2D g) {
 		for(Box b : boxes) {
 			g.setPaint(Color.DARK_GRAY);
 			g.fill(b.getRectangle());
+		}
+	}
+
+	private void drawObstacles(Graphics2D g) {
+		for(Line2D.Double l : obstacles) {
+			g.setPaint(Color.DARK_GRAY);
+			g.draw(l);
 		}
 	}
 
@@ -135,9 +179,11 @@ public class Water2 extends Applet implements ActionListener,KeyListener{
 		for(int i=0;i<l;i++)
 		{
 			Drop d = drops.get(i);
-			if (collidedWithABox(d)) {
-				d.youCollidedWithSomething();
-			}
+//			if (collidedWithABox(d)) {
+//				d.youCollidedWithSomething();
+//			}
+			d.collideWithLine(collidedWithAnObstacle(d));
+
 			p1.setLocation(d.Xloc, d.Yloc);
 			p2.setLocation(d.Xloc + d.Xvel,  d.Yloc + d.Yvel);
 			line.setLine(p1,p2);
@@ -157,7 +203,7 @@ public class Water2 extends Applet implements ActionListener,KeyListener{
 		}
 	}
 
-	public boolean collidedWithABox(Drop d) 
+	private boolean collidedWithABox(Drop d) 
 	{
 		for (Box b : boxes) {
 			Pointt p = new Pointt(d.Xloc, d.Yloc);
@@ -166,6 +212,17 @@ public class Water2 extends Applet implements ActionListener,KeyListener{
 			}
 		}
 		return false;
+	}
+	
+	private Line2D.Double collidedWithAnObstacle(Drop d) 
+	{
+		Line2D.Double dropLine = d.getLine2D();
+		for (Line2D.Double l : obstacles) {
+			if (dropLine.intersectsLine(l)) {
+				return l;
+			}
+		}
+		return null;
 	}
 
 

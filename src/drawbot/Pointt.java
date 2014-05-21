@@ -1,4 +1,4 @@
-package water;
+package drawbot;
 
 import java.awt.geom.Point2D;
 
@@ -23,10 +23,21 @@ public class Pointt
 	public Pointt(Point2D p) {
 		this( p.getX(), p.getY());
 	}
+	public Pointt copy() {
+		return new Pointt(x,y);
+	}
 	
 	/*
 	 * MATH
 	 */
+	@Override
+	public boolean equals(Object otherr) {
+		if (!otherr.getClass().equals(this.getClass())) {
+			return false;
+		}
+		Pointt other = (Pointt) otherr;
+		return Math.abs(x - other.x) < 0.2 && Math.abs(y - other.y) < 0.2;
+	}
 	public boolean greaterThan(Pointt other) {
 		return this.x > other.x && this.y > other.y;
 	}
@@ -66,5 +77,20 @@ public class Pointt
 	public double dot(Pointt other) {
 		return this.x* other.x + this.y*other.y;
 	}
+	public Pointt unitPointt() {
+		return this.dividedBy(this.distance());
+	}
+	public static Pointt Max(Pointt a, Pointt b) {
+		return new Pointt(a.x > b.x ? a.x : b.x , a.y > b.y ? a.y : b.y);
+	}
+	public static Pointt Min(Pointt a, Pointt b) {
+		return new Pointt(a.x < b.x ? a.x : b.x , a.y < b.y ? a.y : b.y);
+	}
 	
+	/*
+	 * Handy for swing
+	 */
+	public Point2D.Double point2D() {
+		return new Point2D.Double(x, y);
+	}
 }
