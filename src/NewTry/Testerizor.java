@@ -7,6 +7,8 @@ import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
 
+import SingleThings.TextUtil;
+
 public class Testerizor extends Applet{
 
 	/**

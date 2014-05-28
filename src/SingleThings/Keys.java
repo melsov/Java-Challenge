@@ -1,5 +1,6 @@
 package SingleThings;
 
+
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
 import java.awt.event.MouseEvent;
@@ -59,7 +60,8 @@ public static boolean UPpress;
 public static boolean DOWNpress;
 public static boolean LEFTpress;
 public static boolean RIGHTpress;
-
+//+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=
+//+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=
 	@Override public void keyPressed(KeyEvent e) {setKeyVars(e,true);}
 	@Override public void keyReleased(KeyEvent e) {setKeyVars(e,false);}
 	@Override public void keyTyped(KeyEvent arg0) {}
@@ -70,9 +72,11 @@ public static boolean RIGHTpress;
 	@Override public void mouseExited(MouseEvent e) {}
 	@Override public void mousePressed(MouseEvent e) {mouseDown=true;}
 	@Override public void mouseReleased(MouseEvent e) {mouseDown=false;}
-	
+//+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=
+//+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=
 	public void findMouse(MouseEvent e){mouseLoc.setLocation(e.getPoint());}
-	
+//+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=
+//+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=
 	public void setKeyVars(KeyEvent e,boolean downOrUp){
 		int pressed = e.getKeyCode();
 		if(pressed == KeyEvent.VK_A){Apress=downOrUp; }
@@ -120,6 +124,7 @@ public static boolean RIGHTpress;
 		if(pressed == KeyEvent.VK_LEFT){LEFTpress=downOrUp; }	
 		if(pressed == KeyEvent.VK_RIGHT){RIGHTpress=downOrUp; }	
 	}
-	
+//+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=
+//+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=	
 
 }

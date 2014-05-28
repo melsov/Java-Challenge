@@ -26,5 +26,18 @@ public class MotorSprite
 		Line2D.Double radar = new Line2D.Double(center.point2D(), radarLoc.point2D());
 		g.setPaint(Color.WHITE);
 		g.draw(radar);
+		
+		int pushDownY = 50;
+		drawTextAt(g, loc, "distToTarget: " + motor.distanceToTarget(), pushDownY );
+		pushDownY +=20;
+		drawTextAt(g, loc, "velocity: " + motor.velocity(), pushDownY );
+		
+	}
+	
+	private void drawTextAt(Graphics2D g, Pointt loc, String str, int pushDownY) {
+		char[] dd = str.toCharArray();
+		Pointt textO = loc.plus(new Pointt(0, pushDownY));
+		textO.x = textO.x > 50 ? textO.x - 150 : textO.x;
+		g.drawChars(dd, 0, dd.length, (int) textO.x,(int) textO.y);
 	}
 }

@@ -1,8 +1,9 @@
 package drawbot;
 
 import java.awt.geom.Point2D;
+import static java.lang.Math.*;
 
-public class Pointt 
+public class Pointt
 {
 	public float x, y;
 	
@@ -38,6 +39,12 @@ public class Pointt
 		Pointt other = (Pointt) otherr;
 		return Math.abs(x - other.x) < 0.2 && Math.abs(y - other.y) < 0.2;
 	}
+	public boolean equalY(Pointt other) {
+		return equalY(other, .01);
+	}
+	public boolean equalY(Pointt other, double epsilon) {
+		return FloatMath.Equal(y, other.y, epsilon);
+	}
 	public boolean greaterThan(Pointt other) {
 		return this.x > other.x && this.y > other.y;
 	}
@@ -68,11 +75,31 @@ public class Pointt
 		}
 		return new Pointt(x/num, y/num);
 	}
+	public Pointt clampToWholeNumbersWhenClose() {
+		return clampToWholeNumbersWhenClose(.01f);
+	}
+	public Pointt clampToWholeNumbersWhenClose(float epsilon) {
+		float xr = round(x);
+		float yr = round(y);
+		Pointt res = this.copy();
+		if (abs(xr - x) < epsilon) res.x = xr; 
+		if (abs(yr - y) < epsilon) res.y = yr;
+		return res;
+	}
+	public Pointt clobberDecimals() {
+		Pointt res = this.copy();
+		res.x = (int) (res.x + .5);
+		res.y = (int) (res.y + .5);
+		return res;
+	}
 	public Pointt multiply(double num) {
 		return new Pointt(num * x, num * y);
 	}
 	public double distance() {
 		return Math.sqrt(x*x + y*y);
+	}
+	public double distanceFrom(Pointt other) {
+		return this.minus(other).distance();
 	}
 	public double dot(Pointt other) {
 		return this.x* other.x + this.y*other.y;
